@@ -5,10 +5,31 @@
   <style>
 
       body {
-        background-color: rgb(117, 67, 255);
-        color: rgb(255, 255, 255);
-        text-align: center;
-        font-family: Lobster, sans-serif;
+       body {  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  color: white;
+  background: linear-gradient(270deg, crimson, purple, darkred, orange);
+  background-size: 800% 800%;
+  animation: moveGradient 10s ease infinite;
+}
+
+@keyframes moveGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
       }
       h1 {
         color: rgb(255, 255, 255);
@@ -35,4 +56,5 @@
   </body>
 </html>
 <p>I did good???</p>
+
 <button onclick="alert('another button!')">this b the slay button #2</button>
