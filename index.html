@@ -1,3 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SLAY WEBSITE CREATION - YAYYYYY 😎 – PUSH THE BUTTON!</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Lobster', Arial, sans-serif;
+      color: white;
+      background: linear-gradient(270deg, crimson, purple, darkred, orange);
+      background-size: 800% 800%;
+      animation: moveGradient 10s ease infinite;
+      text-align: center;
+    }
+
+    @keyframes moveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      color: white;
+    }
+
+    button {
+      background-color: white;
+      color: black;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    button:hover {
+      background-color: crimson;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>SLAY SITE 4 swifites 😎</h1>
+  <p>I love fate of ophelia</p>
+
+  <button onclick="alert('Opalite is better')">Press this button first</button>
+  <button onclick="alert('If you do not agree with button #1 than you are an insult to society')">Press here</button>
+  <button onclick="alert('Hi linnea - its me, a-MARIO')">Press here last</button>
+
+  <div>
+    <button onclick="showTab('home')">Home</button>
+    <button onclick="showTab('about')">About</button>
+    <button onclick="showTab('contact')">Contact</button>
+  </div>
+
+  <div id="home" class="tab-content active">
+    <h2>Welcome Home!</h2>
+    <p>This is the home tab content.</p>
+  </div>
+  <div id="about" class="tab-content">
+    <h2>About Us</h2>
+    <p>Info about this slay site.</p>
+  </div>
+  <div id="contact" class="tab-content">
+    <h2>Contact</h2>
+    <p>Reach out to us here.</p>
+  </div>
+
+  <p>Stay Mad</p>
+
+  <script>
+    function showTab(tabId) {
+      const tabs = document.querySelectorAll('.tab-content');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+</body>
+</html>
 <body>
   <h1>SLAY SITE 😎</h1>
   <p>Welcome to my first website. I edited this myself — not really, ChatGPT did!</p>
@@ -31,6 +125,7 @@
     }
   </script>
 </body>
+
 
 
 
