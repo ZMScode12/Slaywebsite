@@ -5,7 +5,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(270deg, crimson, purple, darkred, orange);
+      background: linear-gradient(darkblue, crimson, purple, hotpink, blue);
       color: white;
       text-align: center;
       padding: 50px;
@@ -207,5 +207,101 @@
     }
   </script>
 
+
+<head>
+  <title>Multiple To-Do Lists 😎</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #6b5bff; color: white; text-align: center; padding: 50px; }
+    input, button { padding: 10px; margin: 5px; border-radius: 8px; border: none; font-size: 16px; }
+    ul { list-style: none; padding: 0; margin-top: 10px; }
+    li { margin: 10px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; }
+    input[type="text"] { flex: 1; margin-left: 10px; }
+    input[type="checkbox"]:checked + input[type="text"] { text-decoration: line-through; color: #ccc; }
+    .hidden { display: none; }
+    .list-button { background-color: white; color: #6b5bff; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome, <span id="userDisplay">Zara</span>!</h1>
+  <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
+
+  <div id="listsContainer"></div>
+
+  <script>
+    const currentUser = "Zara"; // change this if you implement login system
+    const userKey = `lists_${currentUser}`;
+
+    // Load existing lists from localStorage
+    let allLists = JSON.parse(localStorage.getItem(userKey)) || [];
+
+    function saveAllLists() {
+      localStorage.setItem(userKey, JSON.stringify(allLists));
+    }
+
+    function renderLists() {
+      const container = document.getElementById('listsContainer');
+      container.innerHTML = ""; // clear everything
+
+      allLists.forEach((list, index) => {
+        const listDiv = document.createElement('div');
+        listDiv.innerHTML = `<h2>List ${index + 1}</h2>
+                             <input type="text" id="newTask_${index}" placeholder="Add a task">
+                             <button onclick="addTask(${index})">Add</button>
+                             <ul id="list_${index}"></ul>
+                             <hr>`;
+        container.appendChild(listDiv);
+
+        // Load existing tasks for this list
+        const ul = document.getElementById(`list_${index}`);
+        list.forEach(task => {
+          const li = document.createElement('li');
+          li.innerHTML = `<input type="checkbox" ${task.checked ? "checked" : ""} onchange="updateTask(${index})">
+                          <input type="text" value="${task.text}" onchange="updateTask(${index})">
+                          <button onclick="deleteTask(${index}, this)">❌</button>`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    function createNewList() {
+      allLists.push([]); // add an empty list
+      saveAllLists();
+      renderLists();
+    }
+
+    function addTask(listIndex) {
+      const input = document.getElementById(`newTask_${listIndex}`);
+      const taskText = input.value.trim();
+      if (!taskText) return;
+
+      allLists[listIndex].push({ text: taskText, checked: false });
+      input.value = "";
+      saveAllLists();
+      renderLists();
+    }
+
+    function updateTask(listIndex) {
+      const ul = document.getElementById(`list_${listIndex}`);
+      allLists[listIndex] = Array.from(ul.children).map(li => ({
+        text: li.querySelector('input[type=text]').value,
+        checked: li.querySelector('input[type=checkbox]').checked
+      }));
+      saveAllLists();
+    }
+
+    function deleteTask(listIndex, button) {
+      const ul = document.getElementById(`list_${listIndex}`);
+      const index = Array.from(ul.children).indexOf(button.parentElement);
+      allLists[listIndex].splice(index, 1);
+      saveAllLists();
+      renderLists();
+    }
+
+    // Initial render
+    renderLists();
+  </script>
+
 </body>
-</html>
+
+
