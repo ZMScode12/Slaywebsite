@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SLAY WEBSITE 😎</title>
+  <title>Zara's To-Do List 😎</title>
   <style>
     body {
       margin: 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       font-family: 'Lobster', Arial, sans-serif;
       color: white;
@@ -16,6 +16,7 @@
       background-size: 800% 800%;
       animation: moveGradient 10s ease infinite;
       text-align: center;
+      padding-top: 40px;
     }
 
     @keyframes moveGradient {
@@ -26,17 +27,33 @@
 
     h1 {
       color: white;
+      margin-bottom: 20px;
+    }
+
+    #todo-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 70%;
+      border: none;
+      border-radius: 8px;
     }
 
     button {
       background-color: white;
       color: black;
       border: none;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 10px 15px;
+      font-size: 14px;
       border-radius: 8px;
       cursor: pointer;
-      margin: 5px;
+      margin-left: 5px;
     }
 
     button:hover {
@@ -44,55 +61,70 @@
       color: white;
     }
 
-    .tab-content {
-      display: none;
+    ul {
+      list-style-type: none;
+      padding: 0;
       margin-top: 20px;
+      text-align: left;
     }
 
-    .active {
-      display: block;
+    li {
+      background: rgba(255, 255, 255, 0.2);
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    li span {
+      flex: 1;
+      margin-left: 8px;
+      outline: none;
+    }
+
+    input[type="checkbox"]:checked + span {
+      text-decoration: line-through;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>Zara's Test Website #1 😎</h1>
-  <p>I don't know how to code</p>
+  <h1>📝 Zara's To-Do List</h1>
 
-  <!-- Tab buttons -->
-  <div>
-    <button onclick="showTab('home')">Home</button>
-    <button onclick="showTab('about')">About</button>
-    <button onclick="showTab('contact')">Contact</button>
-    <button onclick="showTab('cars')">Cars I Like</button>
-  </div>
+  <div id="todo-container">
+    <input type="text" id="taskInput" placeholder="Add a new task...">
+    <button onclick="addTask()">Add</button>
 
-  <!-- Tab content -->
-  <div id="home" class="tab-content active">
-    <h2>Home!</h2>
-    <p>This is the Home tab as you always return home.</p>
+    <ul id="taskList"></ul>
   </div>
-  <div id="about" class="tab-content">
-    <h2>About Us</h2>
-    <p>I am 8th grader at Mackintosh Acadamy Boulder that codes during class❤😋</p>
-  </div>
-  <div id="contact" class="tab-content">
-    <h2>Contact</h2>
-    <p>Gmail: zaramshaw7@gmail.com.</p>
-    <p>Phone: N/A</p>
-  </div>
-   <div id="cars" class="tab-content">
-  <h2>Cars I Like</h2>
-  <p>One of my favorites is the Rimac Nevera 😎</p>
-  <img <img src="https://www.rimac-automobili.com/wp-content/uploads/2021/02/Rimac-Nevera-exterior-02.jpg" 
-     alt="Rimac Nevera" style="width:80%; max-width:600px; border-radius:10px; margin-top:10px;"
-
-  <p>Stay Mad</p>
 
   <script>
-    function showTab(tabId) {
-      const tabs = document.querySelectorAll('.tab-content');
-      tabs.forEach(tab => tab.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const taskText = input.value.trim();
+      if (taskText === "") return;
+
+      const li = document.createElement("li");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+
+      const span = document.createElement("span");
+      span.textContent = taskText;
+      span.contentEditable = "true"; // makes it editable right on the site!
+
+      const delButton = document.createElement("button");
+      delButton.textContent = "Delete";
+      delButton.onclick = () => li.remove();
+
+      li.appendChild(checkbox);
+      li.appendChild(span);
+      li.appendChild(delButton);
+      document.getElementById("taskList").appendChild(li);
+
+      input.value = "";
     }
   </script>
 </body>
