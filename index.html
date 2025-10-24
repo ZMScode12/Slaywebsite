@@ -21,14 +21,9 @@
       font-size: 16px;
     }
 
-    button {
-      cursor: pointer;
-    }
+    button { cursor: pointer; }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
+    ul { list-style: none; padding: 0; margin-top: 10px; }
 
     li {
       margin: 10px;
@@ -40,20 +35,19 @@
       justify-content: space-between;
     }
 
-    input[type="text"] {
-      flex: 1;
-      margin-left: 10px;
-    }
+    input[type="text"] { flex: 1; margin-left: 10px; }
 
     input[type="checkbox"]:checked + input[type="text"] {
       text-decoration: line-through;
       color: #ccc;
     }
+
+    .list-button { background-color: white; color: #6b5bff; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Sign up / Login section -->
+  <!-- Sign up / Login -->
   <div id="signup">
     <h1>Sign Up 💫</h1>
     <input type="text" id="username" placeholder="Enter a username"><br>
@@ -70,42 +64,37 @@
     <p>Need an account? <a href="#" onclick="showSignup()">Sign up</a></p>
   </div>
 
-  <!-- To-do list section -->
+  <!-- To-do lists -->
   <div id="todo" class="hidden">
-    <h1>Welcome, <span id="userDisplay"></span>!</h1>
-    <input type="text" id="taskInput" placeholder="Add a new task...">
-    <button onclick="addTask()">Add</button>
-    <ul id="todoList"></ul>
+    <div id="todoHeader"></div> <!-- Dynamic welcome + new list button -->
+    <div id="listsContainer"></div>
     <button onclick="logout()">Logout</button>
   </div>
 
   <script>
     let currentUser = localStorage.getItem('currentUser');
+    let allLists = [];
 
     if (currentUser) {
       showTodo();
-      loadTasks();
+      loadAllLists();
     }
 
+    // Account functions
     function createAccount() {
       const user = document.getElementById('username').value;
       const pass = document.getElementById('password').value;
 
-      if (!user || !pass) {
-        alert("Please fill out both fields!");
-        return;
-      }
+      if (!user || !pass) { alert("Fill both fields!"); return; }
+      if (localStorage.getItem(`user_${user}`)) { alert("Username exists!"); return; }
 
-      if (localStorage.getItem(`user_${user}`)) {
-        alert("Username already exists!");
-        return;
-      }
-
-      const userData = { password: pass, tasks: [] };
-      localStorage.setItem(`user_${user}`, JSON.stringify(userData));
+      localStorage.setItem(`user_${user}`, JSON.stringify({ password: pass, lists: [] }));
       localStorage.setItem('currentUser', user);
       currentUser = user;
+      allLists = [];
       showTodo();
+      renderLists();
+      saveAllLists();
     }
 
     function showLogin() {
@@ -122,126 +111,56 @@
       const user = document.getElementById('loginUsername').value;
       const pass = document.getElementById('loginPassword').value;
 
-      const data = localStorage.getItem(`user_${user}`);
-      if (!data) {
-        alert("User not found!");
-        return;
-      }
+      const data = JSON.parse(localStorage.getItem(`user_${user}`));
+      if (!data) { alert("User not found!"); return; }
+      if (data.password !== pass) { alert("Wrong password!"); return; }
 
-      const userData = JSON.parse(data);
-      if (userData.password !== pass) {
-        alert("Wrong password!");
-        return;
-      }
-
-      localStorage.setItem('currentUser', user);
       currentUser = user;
+      localStorage.setItem('currentUser', user);
+      allLists = data.lists || [];
       showTodo();
-      loadTasks();
+      renderLists();
     }
 
     function showTodo() {
       document.getElementById('signup').classList.add('hidden');
       document.getElementById('login').classList.add('hidden');
       document.getElementById('todo').classList.remove('hidden');
-      document.getElementById('userDisplay').textContent = currentUser;
-    }
 
-    function addTask() {
-      const input = document.getElementById('taskInput');
-      const taskText = input.value.trim();
-      if (taskText === "") return;
-
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <input type="checkbox" onchange="saveTasks()">
-        <input type="text" value="${taskText}" onchange="saveTasks()">
-        <button onclick="deleteTask(this)">❌</button>
+      const headerDiv = document.getElementById('todoHeader');
+      headerDiv.innerHTML = `
+        <h1>Welcome, ${currentUser}!</h1>
+        <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
       `;
-      document.getElementById('todoList').appendChild(li);
-      input.value = "";
-      saveTasks();
-    }
-
-    function deleteTask(button) {
-      button.parentElement.remove();
-      saveTasks();
-    }
-
-    function saveTasks() {
-      const tasks = [];
-      document.querySelectorAll('#todoList li').forEach(li => {
-        tasks.push({
-          text: li.querySelector('input[type=text]').value,
-          checked: li.querySelector('input[type=checkbox]').checked
-        });
-      });
-
-      const userData = JSON.parse(localStorage.getItem(`user_${currentUser}`));
-      userData.tasks = tasks;
-      localStorage.setItem(`user_${currentUser}`, JSON.stringify(userData));
-    }
-
-    function loadTasks() {
-      const userData = JSON.parse(localStorage.getItem(`user_${currentUser}`));
-      const list = document.getElementById('todoList');
-      list.innerHTML = "";
-
-      userData.tasks.forEach(task => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <input type="checkbox" ${task.checked ? "checked" : ""} onchange="saveTasks()">
-          <input type="text" value="${task.text}" onchange="saveTasks()">
-          <button onclick="deleteTask(this)">❌</button>
-        `;
-        list.appendChild(li);
-      });
     }
 
     function logout() {
+      saveAllLists();
       localStorage.removeItem('currentUser');
       currentUser = null;
+      allLists = [];
       document.getElementById('todo').classList.add('hidden');
       document.getElementById('login').classList.remove('hidden');
-      document.getElementById('todoList').innerHTML = "";
+      document.getElementById('listsContainer').innerHTML = "";
+      document.getElementById('todoHeader').innerHTML = ""; // remove welcome header on logout
     }
-  </script>
 
-
-<head>
-  <title>Multiple To-Do Lists 😎</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #6b5bff; color: white; text-align: center; padding: 50px; }
-    input, button { padding: 10px; margin: 5px; border-radius: 8px; border: none; font-size: 16px; }
-    ul { list-style: none; padding: 0; margin-top: 10px; }
-    li { margin: 10px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; }
-    input[type="text"] { flex: 1; margin-left: 10px; }
-    input[type="checkbox"]:checked + input[type="text"] { text-decoration: line-through; color: #ccc; }
-    .hidden { display: none; }
-    .list-button { background-color: white; color: #6b5bff; cursor: pointer; }
-  </style>
-</head>
-<body>
-
-  <h1>Welcome, <span id="userDisplay">Zara</span>!</h1>
-  <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
-
-  <div id="listsContainer"></div>
-
-  <script>
-    const currentUser = "Zara"; // change this if you implement login system
-    const userKey = `lists_${currentUser}`;
-
-    // Load existing lists from localStorage
-    let allLists = JSON.parse(localStorage.getItem(userKey)) || [];
-
+    // Multiple To-Do Lists functions
     function saveAllLists() {
-      localStorage.setItem(userKey, JSON.stringify(allLists));
+      const userData = JSON.parse(localStorage.getItem(`user_${currentUser}`));
+      userData.lists = allLists;
+      localStorage.setItem(`user_${currentUser}`, JSON.stringify(userData));
+    }
+
+    function loadAllLists() {
+      const data = JSON.parse(localStorage.getItem(`user_${currentUser}`));
+      allLists = data.lists || [];
+      renderLists();
     }
 
     function renderLists() {
       const container = document.getElementById('listsContainer');
-      container.innerHTML = ""; // clear everything
+      container.innerHTML = "";
 
       allLists.forEach((list, index) => {
         const listDiv = document.createElement('div');
@@ -252,7 +171,6 @@
                              <hr>`;
         container.appendChild(listDiv);
 
-        // Load existing tasks for this list
         const ul = document.getElementById(`list_${index}`);
         list.forEach(task => {
           const li = document.createElement('li');
@@ -265,7 +183,7 @@
     }
 
     function createNewList() {
-      allLists.push([]); // add an empty list
+      allLists.push([]);
       saveAllLists();
       renderLists();
     }
@@ -298,10 +216,7 @@
       renderLists();
     }
 
-    // Initial render
-    renderLists();
   </script>
 
 </body>
-
-
+</html>
