@@ -63,6 +63,7 @@
     .tab-btn { background: rgba(255,255,255,0.12); color: white; border-radius: 12px; padding: 8px 12px; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: none; }
     .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 
+
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
   </style>
 </head>
@@ -73,6 +74,7 @@
     <h1>Sign Up 💫</h1>
     <input type="text" id="username" placeholder="Enter a username"><br>
     <input type="password" id="password" placeholder="Enter a password"><br>
+
 
     <p style="margin-top:8px">Pick your background style (or keep the moving default):</p>
     <div id="gradients">
@@ -86,6 +88,8 @@
     <div style="margin-top:8px">
       <button onclick="createAccount()">Create Account</button>
       <button class="control-small" onclick="useDefaultNow()">Don't change — keep moving</button>
+      <button id="changeBgBtn" style="display:none;">Change Background</button>
+
     </div>
 
     <p style="margin-top:12px">Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
@@ -102,6 +106,7 @@
   </div>
 
   <!-- To-do lists -->
+
   <div id="todo" class="hidden">
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
     <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
@@ -230,13 +235,62 @@ function showTodo() {
 
 /* let users change background after signup/login */
 function openBackgroundPicker() {
-  // show the signup area so they can pick — but keep data
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-  // pre-select the user's current background in the UI
+  // Create a popup or modal-style overlay instead of going back to signup
+  const overlay = document.createElement('div');
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.background = 'rgba(0,0,0,0.7)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '9999';
+
+  const pickerBox = document.createElement('div');
+  pickerBox.style.background = 'rgba(255,255,255,0.15)';
+  pickerBox.style.padding = '20px';
+  pickerBox.style.borderRadius = '14px';
+  pickerBox.style.color = 'white';
+  pickerBox.style.textAlign = 'center';
+  pickerBox.style.boxShadow = '0 0 20px rgba(0,0,0,0.4)';
+
+  pickerBox.innerHTML = `
+    <h2>Choose a new background ✨</h2>
+    <div id="gradientChoices"></div>
+    <button style="margin-top:12px;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;"
+            onclick="document.body.removeChild(this.parentElement.parentElement)">Close</button>
+  `;
+
+  overlay.appendChild(pickerBox);
+  document.body.appendChild(overlay);
+
+  // clone the gradient buttons so users can pick inside this overlay
+  const choiceDiv = pickerBox.querySelector('#gradientChoices');
+  const gradients = Array.from(document.querySelectorAll('.gradient-option'));
+  gradients.forEach(g => {
+    const clone = g.cloneNode(true);
+    clone.onclick = () => {
+      const val = clone.getAttribute('data-bg');
+      setPickedBgValue(val);
+
+      // save new background for logged-in user
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[currentUser]) {
+        users[currentUser].background = val;
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    };
+    choiceDiv.appendChild(clone);
+  });
+
+  // pre-select current background
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const bg = (users[currentUser] && users[currentUser].background) || 'default';
   setPickedBgValue(bg);
+}
+
 }
 
 /* logout */
@@ -254,6 +308,7 @@ function logout() {
   document.getElementById('listsContainer').innerHTML = "";
   document.getElementById('tabsContainer').innerHTML = "";
   document.getElementById('todoHeader').innerHTML = "";
+  document.getElementById('changeBgBtn').style.display = 'none';
 }
 
 /* --------- Save / Load user lists --------- */
@@ -404,6 +459,22 @@ function deleteTask(taskIndex) {
 function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+  // Save selected background when the user changes it after signing in
+gradientEls.forEach(el => el.addEventListener('click', () => {
+  const val = el.getAttribute('data-bg');
+  setPickedBgValue(val);
+
+  // if the user is logged in, save the new background permanently
+  if (currentUser) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[currentUser]) {
+      users[currentUser].background = val;
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+  }
+}));
+
 </script>
 </body>
 </html>
+
