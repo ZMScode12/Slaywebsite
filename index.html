@@ -75,6 +75,14 @@
     </div>
   </div>
 
+  <!-- Quick Links Sidebar -->
+<div id="quick-links" style="position: fixed; top: 40px; left: 20px; width: 200px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; color: white; max-height: 80%; overflow-y: auto; z-index: 1000;">
+  <h3>Quick Links 🔗</h3>
+  <ul id="linksList" style="padding-left: 20px;"></ul>
+  <input type="text" id="newLinkText" placeholder="Link text" style="width: 100%; margin-top:6px; border-radius:6px; border:none; padding:6px;">
+  <input type="text" id="newLinkUrl" placeholder="URL" style="width: 100%; margin-top:6px; border-radius:6px; border:none; padding:6px;">
+  <button onclick="addLink()" style="width:100%; margin-top:6px; padding:6px; border-radius:6px; cursor:pointer;">Add Link</button>
+</div>
   <!-- To-do lists -->
   <div id="todo" class="hidden">
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
@@ -319,8 +327,44 @@ function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskInde
 function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
 
 function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+let quickLinks = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+
+function renderLinks() {
+  const ul = document.getElementById('linksList');
+  ul.innerHTML = '';
+  quickLinks.forEach((link, i) => {
+    const li = document.createElement('li');
+    li.style.marginBottom = '6px';
+    li.innerHTML = `
+      <a href="${link.url}" target="_blank" style="color: #ffd; text-decoration: underline;">${link.text}</a>
+      <button onclick="removeLink(${i})" style="margin-left:6px;">🗑</button>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+function addLink() {
+  const text = document.getElementById('newLinkText').value.trim();
+  const url = document.getElementById('newLinkUrl').value.trim();
+  if (!text || !url) return alert('Please enter both text and URL');
+  quickLinks.push({ text, url });
+  localStorage.setItem('quickLinks', JSON.stringify(quickLinks));
+  document.getElementById('newLinkText').value = '';
+  document.getElementById('newLinkUrl').value = '';
+  renderLinks();
+}
+
+function removeLink(index) {
+  quickLinks.splice(index, 1);
+  localStorage.setItem('quickLinks', JSON.stringify(quickLinks));
+  renderLinks();
+}
+
+// Initial render on page load
+renderLinks();
 
 </script>
 </body>
 </html>
+
 
