@@ -42,6 +42,7 @@
     }
     input[type="text"] { flex: 1; margin-left: 10px; border-radius:6px; padding:8px; border:none; }
 
+    /* Gradient picker */
     .gradient-option {
       width: 86px;
       height: 44px;
@@ -57,6 +58,7 @@
       transform: translateY(-3px);
     }
 
+    /* Tabs style */
     .tabs { margin-bottom: 18px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
     .tab-btn { background: rgba(255,255,255,0.12); color: white; border-radius: 12px; padding: 8px 12px; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: none; }
     .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -66,6 +68,7 @@
 </head>
 <body>
 
+  <!-- Sign up / Login -->
   <div id="signup">
     <h1>Sign Up 💫</h1>
     <input type="text" id="username" placeholder="Enter a username"><br>
@@ -77,7 +80,8 @@
       <div class="gradient-option" data-bg="linear-gradient(to right, #2193b0, #6dd5ed)" style="background: linear-gradient(to right, #2193b0, #6dd5ed)" title="Ocean"></div>
       <div class="gradient-option" data-bg="linear-gradient(to right, #0f2027, #203a43, #2c5364)" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364)" title="Galaxy"></div>
       <div class="gradient-option" data-bg="linear-gradient(to right, #ff9a9e, #fad0c4)" style="background: linear-gradient(to right, #ff9a9e, #fad0c4)" title="Blossom"></div>
-      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"></div>
+      <!-- "Don't change" option = keep moving default -->
+      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"> </div>
     </div>
     <div style="margin-top:8px">
       <button onclick="createAccount()">Create Account</button>
@@ -97,25 +101,30 @@
     </div>
   </div>
 
+  <!-- To-do lists -->
   <div id="todo" class="hidden">
-    <div id="todoHeader"></div>
-    <div class="tabs" id="tabsContainer"></div>
-    <div id="listsContainer"></div>
+    <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
+    <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
+    <div id="listsContainer"></div> <!-- Tasks for active tab -->
     <div style="margin-top:12px">
       <button onclick="logout()">Logout</button>
     </div>
   </div>
 
 <script>
+/* --------- State --------- */
 let currentUser = localStorage.getItem('currentUser');
-let allLists = [];
+let allLists = [];               // array of { name: string, tasks: [{text,done}] }
 let activeListIndex = 0;
-let pickedBackground = 'default';
+let pickedBackground = 'default'; // 'default' keeps moving gradient, otherwise a CSS gradient string
 
+/* --------- Helpers for gradients UI --------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
 function setPickedBgValue(val) {
   pickedBackground = val;
+  // update visual selection
   gradientEls.forEach(el => el.classList.toggle('selected', el.getAttribute('data-bg') === val));
+  // preview it immediately
   applyBackgroundPreview(val);
 }
 function applyBackgroundPreview(val) {
@@ -129,20 +138,40 @@ function applyBackgroundPreview(val) {
     document.body.style.animation = '';
   }
 }
-gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
-function useDefaultNow() { setPickedBgValue('default'); }
+// wire up clicks
+gradientEls.forEach(el => el.addEventListener('click', () => {
+  setPickedBgValue(el.getAttribute('data-bg'));
+}));
+
+// "Don't change" quick button (preview + select default)
+function useDefaultNow() {
+  setPickedBgValue('default');
+}
+
+/* Initialize signup preview — default selected */
 setPickedBgValue('default');
 
-if (currentUser) { showTodo(); loadAllLists(); }
+/* --------- Load existing session --------- */
+if (currentUser) {
+  showTodo();
+  loadAllLists();
+}
 
+/* --------- Account functions --------- */
 function createAccount() {
-  const user = username.value.trim();
-  const pass = password.value.trim();
-  if (!user || !pass) return alert('Please fill both fields');
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (users[user]) return alert('Username exists');
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  if (!user || !pass) { alert('Please fill both username and password'); return; }
 
-  users[user] = { password: pass, lists: [{ name: 'My First List', tasks: [] }], background: pickedBackground };
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (users[user]) { alert('Username exists'); return; }
+
+  // create with one default list object (with name + tasks)
+  users[user] = {
+    password: pass,
+    lists: [{ name: 'My First List', tasks: [] }],
+    background: pickedBackground // either 'default' or a gradient string
+  };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', user);
   currentUser = user;
@@ -152,18 +181,23 @@ function createAccount() {
 }
 
 function showLogin() {
-  signup.classList.add('hidden');
-  login.classList.remove('hidden');
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
 }
+
 function showSignup() {
-  login.classList.add('hidden');
-  signup.classList.remove('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
 }
+
 function login() {
-  const user = loginUsername.value.trim();
-  const pass = loginPassword.value.trim();
+  const user = document.getElementById('loginUsername').value.trim();
+  const pass = document.getElementById('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!users[user] || users[user].password !== pass) return alert('Invalid login');
+  if (!users[user] || users[user].password !== pass) {
+    alert('Invalid username or password');
+    return;
+  }
   localStorage.setItem('currentUser', user);
   currentUser = user;
   loadAllLists();
@@ -171,54 +205,63 @@ function login() {
   renderLists();
 }
 
+/* --------- show/hide and background application --------- */
 function showTodo() {
+  // load user data and apply their background
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return;
+
   const user = users[currentUser];
-  applyBackgroundPreview(user.background || 'default');
+  const bg = user.background || 'default';
+  applyBackgroundPreview(bg);
 
-  signup.classList.add('hidden');
-  login.classList.add('hidden');
-  todo.classList.remove('hidden');
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('todo').classList.remove('hidden');
 
-  todoHeader.innerHTML = `
+  document.getElementById('todoHeader').innerHTML = `
     <h1>Welcome, ${currentUser}!</h1>
-    <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
-    <button onclick="changeBackground()" class="list-button">Change Background</button>
+    <div style="margin-top:8px">
+      <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
+      <button class="control-small" onclick="openBackgroundPicker()">Change background</button>
+    </div>
   `;
 }
 
-function changeBackground() {
-  const choice = prompt("Enter background (e.g. 'red', 'linear-gradient(#ff6eb4,#6b5bff)', or 'default')");
-  if (!choice) return;
+/* let users change background after signup/login */
+function openBackgroundPicker() {
+  // show the signup area so they can pick — but keep data
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+  // pre-select the user's current background in the UI
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (choice.toLowerCase() === 'default') {
-    users[currentUser].background = 'default';
-  } else {
-    users[currentUser].background = choice;
-  }
-  localStorage.setItem('users', JSON.stringify(users));
-  applyBackgroundPreview(users[currentUser].background);
+  const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  setPickedBgValue(bg);
 }
 
+/* logout */
 function logout() {
+  // save current lists first
   saveAllLists();
   localStorage.removeItem('currentUser');
   currentUser = null;
   allLists = [];
   activeListIndex = 0;
+  // restore default moving gradient preview
   setPickedBgValue('default');
-  todo.classList.add('hidden');
-  login.classList.remove('hidden');
-  listsContainer.innerHTML = "";
-  tabsContainer.innerHTML = "";
-  todoHeader.innerHTML = "";
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('listsContainer').innerHTML = "";
+  document.getElementById('tabsContainer').innerHTML = "";
+  document.getElementById('todoHeader').innerHTML = "";
 }
 
+/* --------- Save / Load user lists --------- */
 function saveAllLists() {
   if (!currentUser) return;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   users[currentUser].lists = allLists;
+  // keep background as-is
   localStorage.setItem('users', JSON.stringify(users));
 }
 
@@ -226,42 +269,49 @@ function loadAllLists() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) { allLists = []; return; }
   allLists = users[currentUser].lists || [];
-  allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : l));
+  // ensure each list object has name and tasks keys (backwards compatibility)
+  allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
   activeListIndex = 0;
 }
 
+/* --------- Render Tabs & Lists --------- */
 function renderLists() {
   renderTabs();
   renderActiveList();
 }
 
 function renderTabs() {
-  tabsContainer.innerHTML = "";
+  const tabs = document.getElementById('tabsContainer');
+  tabs.innerHTML = "";
   allLists.forEach((list, i) => {
     const btn = document.createElement('button');
     btn.className = 'tab-btn' + (i === activeListIndex ? ' active' : '');
     btn.textContent = list.name || `List ${i+1}`;
     btn.onclick = () => { activeListIndex = i; renderLists(); };
-    tabsContainer.appendChild(btn);
+    tabs.appendChild(btn);
 
+    // rename button
     const renameBtn = document.createElement('button');
     renameBtn.className = 'control-small';
     renameBtn.textContent = '✏️';
     renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
-    tabsContainer.appendChild(renameBtn);
+    tabs.appendChild(renameBtn);
 
+    // delete button
     const delBtn = document.createElement('button');
     delBtn.className = 'control-small';
     delBtn.textContent = '🗑';
     delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteList(i); };
-    tabsContainer.appendChild(delBtn);
+    tabs.appendChild(delBtn);
   });
 }
 
 function renderActiveList() {
-  listsContainer.innerHTML = "";
+  const container = document.getElementById('listsContainer');
+  container.innerHTML = "";
+
   if (allLists.length === 0) {
-    listsContainer.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
+    container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
       <h2>No To-Do Lists Yet 😎</h2>
       <p>Click "+ New To-Do List" to start.</p>
     </div>`;
@@ -271,6 +321,7 @@ function renderActiveList() {
   const index = activeListIndex;
   const list = allLists[index];
   const listDiv = document.createElement('div');
+
   listDiv.innerHTML = `
     <h2 style="margin-bottom:6px">${list.name}</h2>
     <div style="margin-bottom:8px">
@@ -279,7 +330,7 @@ function renderActiveList() {
     </div>
     <ul id="list_${index}"></ul>
   `;
-  listsContainer.appendChild(listDiv);
+  container.appendChild(listDiv);
 
   const ul = document.getElementById(`list_${index}`);
   list.tasks.forEach((task, tIdx) => {
@@ -293,6 +344,7 @@ function renderActiveList() {
   });
 }
 
+/* --------- List & Task operations --------- */
 function createNewList() {
   const name = `List ${allLists.length + 1}`;
   allLists.push({ name, tasks: [] });
@@ -300,50 +352,58 @@ function createNewList() {
   activeListIndex = allLists.length - 1;
   renderLists();
 }
-function renameList(i) {
-  const currentName = allLists[i].name || `List ${i+1}`;
-  const newName = prompt("Rename list:", currentName);
-  if (newName && newName.trim()) {
-    allLists[i].name = newName.trim();
+
+function renameList(listIndex) {
+  const currentName = allLists[listIndex].name || `List ${listIndex+1}`;
+  const newName = prompt("Enter a new name for this list:", currentName);
+  if (newName && newName.trim() !== "") {
+    allLists[listIndex].name = newName.trim();
     saveAllLists();
     renderLists();
   }
 }
-function confirmDeleteList(i) {
-  if (!confirm("Delete this list?")) return;
-  allLists.splice(i, 1);
-  activeListIndex = Math.max(0, allLists.length - 1);
+
+function confirmDeleteList(listIndex) {
+  if (!confirm("Are you sure you want to delete this list and all its tasks?")) return;
+  allLists.splice(listIndex, 1);
+  if (allLists.length === 0) activeListIndex = 0;
+  else if (activeListIndex >= allLists.length) activeListIndex = allLists.length - 1;
   saveAllLists();
   renderLists();
 }
-function addTask(i) {
-  const input = document.getElementById(`newTask_${i}`);
+
+function addTask(listIndex) {
+  const input = document.getElementById(`newTask_${listIndex}`);
   const text = input.value.trim();
   if (!text) return;
-  allLists[i].tasks.push({ text, done: false });
+  allLists[listIndex].tasks.push({ text, done: false });
   input.value = "";
   saveAllLists();
   renderLists();
 }
-function toggleTask(tIdx) {
+
+function toggleTask(taskIndex) {
   const list = allLists[activeListIndex];
-  list.tasks[tIdx].done = !list.tasks[tIdx].done;
+  list.tasks[taskIndex].done = !list.tasks[taskIndex].done;
   saveAllLists();
   renderLists();
 }
-function editTask(tIdx, newText) {
-  allLists[activeListIndex].tasks[tIdx].text = newText;
+
+function editTask(taskIndex, newText) {
+  allLists[activeListIndex].tasks[taskIndex].text = newText;
   saveAllLists();
 }
-function deleteTask(tIdx) {
-  allLists[activeListIndex].tasks.splice(tIdx, 1);
+
+function deleteTask(taskIndex) {
+  allLists[activeListIndex].tasks.splice(taskIndex, 1);
   saveAllLists();
   renderLists();
 }
+
+/* --------- Small util --------- */
 function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
 </html>
-
