@@ -302,7 +302,7 @@ function renderActiveList() {
     const li = document.createElement('li');
     li.innerHTML = `
       <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
-      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)">
+     <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}">
       <button onclick="deleteTask(${tIdx})">🗑️</button>
     `;
     ul.appendChild(li);
@@ -323,3 +323,4 @@ function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g
 </script>
 </body>
 </html>
+
