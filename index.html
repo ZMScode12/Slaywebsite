@@ -223,22 +223,8 @@ function showTodo() {
     <h1>Welcome, ${currentUser}!</h1>
     <div style="margin-top:8px">
       <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
-      <button class="control-small" onclick="openBackgroundPicker()">Change background</button>
     </div>
   `;
-}
-
-/* let users change background after signup/login */
-function openBackgroundPicker() {
-  // show the signup area so they can pick — but keep data
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-  // pre-select the user's current background in the UI
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  const bg = (users[currentUser] && users[currentUser].background) || 'default';
-  setPickedBgValue(bg);
-}
-
 /* logout */
 function logout() {
   // save current lists first
@@ -407,3 +393,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
