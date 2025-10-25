@@ -1,259 +1,240 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dynamic To-Do Tabs 😎</title>
+  <title>Custom To-Do App ✨</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #6b5bff, #ff6eb4, #00d2ff);
       color: white;
       text-align: center;
       padding: 50px;
-      background-size: 400% 400%;
-      animation: gradientMove 15s ease infinite;
-    }
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      transition: background 0.8s ease;
     }
 
     .hidden { display: none; }
     input, button { padding: 10px; margin: 5px; border-radius: 8px; border: none; font-size: 16px; }
     button { cursor: pointer; }
-    .list-button { background-color: white; color: #6b5bff; }
     ul { list-style: none; padding: 0; margin-top: 10px; }
-    li { margin: 10px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; }
-    input[type="text"] { flex: 1; margin-left: 10px; }
-    input[type="checkbox"]:checked + input[type="text"] { text-decoration: line-through; color: #ccc; }
+    li {
+      margin: 10px;
+      background: rgba(255,255,255,0.2);
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-    /* Tabs style */
-    .tabs { margin-bottom: 20px; }
-    .tab-btn { background: rgba(255,255,255,0.2); color: white; border-radius: 5px; margin: 0 5px; padding: 8px 12px; cursor: pointer; }
-    .tab-btn.active { background: white; color: #6b5bff; }
+    .gradient-option {
+      width: 80px;
+      height: 40px;
+      border-radius: 8px;
+      display: inline-block;
+      margin: 5px;
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    .list-button { background-color: white; color: #6b5bff; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Sign up / Login -->
+  <!-- Sign up -->
   <div id="signup">
     <h1>Sign Up 💫</h1>
     <input type="text" id="username" placeholder="Enter a username"><br>
     <input type="password" id="password" placeholder="Enter a password"><br>
+    <p>Pick your background style:</p>
+    <div id="gradients">
+      <div class="gradient-option" style="background: linear-gradient(to right, #ff7e5f, #feb47b)" data-bg="linear-gradient(to right, #ff7e5f, #feb47b)"></div>
+      <div class="gradient-option" style="background: linear-gradient(to right, #2193b0, #6dd5ed)" data-bg="linear-gradient(to right, #2193b0, #6dd5ed)"></div>
+      <div class="gradient-option" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364)" data-bg="linear-gradient(to right, #0f2027, #203a43, #2c5364)"></div>
+      <div class="gradient-option" style="background: linear-gradient(to right, #ff9a9e, #fad0c4)" data-bg="linear-gradient(to right, #ff9a9e, #fad0c4)"></div>
+    </div>
+    <br>
     <button onclick="createAccount()">Create Account</button>
-    <p>Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
   </div>
 
+  <!-- Login -->
   <div id="login" class="hidden">
-    <h1>Login 💫</h1>
-    <input type="text" id="loginUsername" placeholder="Enter username"><br>
-    <input type="password" id="loginPassword" placeholder="Enter password"><br>
-    <button onclick="login()">Log In</button>
+    <h1>Login 🧠</h1>
+    <input type="text" id="loginUsername" placeholder="Username"><br>
+    <input type="password" id="loginPassword" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
     <p>Need an account? <a href="#" onclick="showSignup()">Sign up</a></p>
   </div>
 
-  <!-- To-do lists -->
+  <!-- To-Do Page -->
   <div id="todo" class="hidden">
-    <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
-    <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
-    <div id="listsContainer"></div> <!-- Tasks for active tab -->
+    <h1 id="welcome"></h1>
+    <div id="tabs"></div>
+    <br>
+    <input type="text" id="taskInput" placeholder="Add a new task">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="taskList"></ul>
+    <br>
+    <button onclick="createList()">Create New List</button>
     <button onclick="logout()">Logout</button>
   </div>
 
-<script>
-let currentUser = localStorage.getItem('currentUser');
-let allLists = [];
-let activeListIndex = 0;
+  <script>
+    let currentUser = localStorage.getItem('currentUser');
+    let activeListIndex = 0;
+    let selectedGradient = "linear-gradient(darkblue, crimson, purple, hotpink, blue)";
 
-// Auto-login if user already exists
-if (currentUser) {
-  showTodo();
-  loadAllLists();
-}
+    if (currentUser) showTodo();
 
-// --------- Account Functions ---------
-function createAccount() {
-  const user = document.getElementById('username').value.trim();
-  const pass = document.getElementById('password').value.trim();
-  if (!user || !pass) { alert("Fill both fields!"); return; }
-  if (localStorage.getItem(`user_${user}`)) { alert("Username exists!"); return; }
+    // gradient picker logic
+    document.querySelectorAll('.gradient-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        selectedGradient = opt.getAttribute('data-bg');
+        document.body.style.background = selectedGradient;
+      });
+    });
 
-  localStorage.setItem(`user_${user}`, JSON.stringify({ password: pass, lists: [] }));
-  localStorage.setItem('currentUser', user);
-  currentUser = user;
-  allLists = [];
-  showTodo();
-  renderLists();
-  saveAllLists();
-}
+    function createAccount() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!username || !password) return alert('Please enter username and password.');
 
-function showLogin() {
-  document.getElementById('signup').classList.add('hidden');
-  document.getElementById('login').classList.remove('hidden');
-}
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[username]) return alert('Username already exists!');
 
-function showSignup() {
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-}
+      users[username] = {
+        password,
+        lists: [{ name: "My First List", tasks: [] }],
+        background: selectedGradient
+      };
 
-function login() {
-  const user = document.getElementById('loginUsername').value.trim();
-  const pass = document.getElementById('loginPassword').value.trim();
-  const data = JSON.parse(localStorage.getItem(`user_${user}`));
-  if (!data) { alert("User not found!"); return; }
-  if (data.password !== pass) { alert("Wrong password!"); return; }
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.setItem('currentUser', username);
+      showTodo();
+    }
 
-  currentUser = user;
-  localStorage.setItem('currentUser', user);
-  allLists = data.lists || [];
-  activeListIndex = 0;
-  showTodo();
-  renderLists();
-}
+    function showLogin() {
+      document.getElementById('signup').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+    }
 
-// --------- To-Do Functions ---------
-function showTodo() {
-  document.getElementById('signup').classList.add('hidden');
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('todo').classList.remove('hidden');
+    function showSignup() {
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('signup').classList.remove('hidden');
+    }
 
-  document.getElementById('todoHeader').innerHTML = `
-    <h1>Welcome, ${currentUser}!</h1>
-    <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
-  `;
-}
+    function login() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
 
-function logout() {
-  saveAllLists();
-  localStorage.removeItem('currentUser');
-  currentUser = null;
-  allLists = [];
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('login').classList.remove('hidden');
-  document.getElementById('listsContainer').innerHTML = "";
-  document.getElementById('tabsContainer').innerHTML = "";
-  document.getElementById('todoHeader').innerHTML = "";
-}
+      if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
+        showTodo();
+      } else alert('Invalid credentials.');
+    }
 
-// --------- Save / Load ---------
-function saveAllLists() {
-  if (!currentUser) return;
-  const userData = JSON.parse(localStorage.getItem(`user_${currentUser}`));
-  userData.lists = allLists;
-  localStorage.setItem(`user_${currentUser}`, JSON.stringify(userData));
-}
+    function logout() {
+      localStorage.removeItem('currentUser');
+      document.getElementById('todo').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+      document.body.style.background = "linear-gradient(darkblue, crimson, purple, hotpink, blue)";
+    }
 
-function loadAllLists() {
-  const data = JSON.parse(localStorage.getItem(`user_${currentUser}`));
-  allLists = data.lists || [];
-  activeListIndex = 0;
-  renderLists();
-}
+    function showTodo() {
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      currentUser = localStorage.getItem('currentUser');
+      if (!currentUser || !users[currentUser]) return;
 
-// --------- Render Lists & Tabs ---------
-function renderLists() {
-  renderTabs();
-  renderActiveList();
-}
+      const user = users[currentUser];
+      document.body.style.background = user.background || selectedGradient;
 
-function renderTabs() {
-  const tabs = document.getElementById('tabsContainer');
-  tabs.innerHTML = "";
-  allLists.forEach((list, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'tab-btn' + (i === activeListIndex ? ' active' : '');
-    btn.textContent = `List ${i+1}`;
-    btn.onclick = () => { activeListIndex = i; renderLists(); };
-    tabs.appendChild(btn);
+      document.getElementById('signup').classList.add('hidden');
+      document.getElementById('login').classList.add('hidden');
+      document.getElementById('todo').classList.remove('hidden');
 
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '🗑 Delete';
-    delBtn.style.marginLeft = '5px';
-    delBtn.onclick = () => confirmDeleteList(i);
-    tabs.appendChild(delBtn);
-  });
-}
+      document.getElementById('welcome').innerText = `Welcome, ${currentUser}!`;
 
-function renderActiveList() {
-  const container = document.getElementById('listsContainer');
-  container.innerHTML = "";
+      renderTabs();
+      renderTasks();
+    }
 
-  if (allLists.length === 0) {
-    const msg = document.createElement('div');
-    msg.innerHTML = `
-      <h2>No To-Do Lists Yet 😎</h2>
-      <p>Click the "+ New To-Do List" button above to create your first list!</p>
-    `;
-    container.appendChild(msg);
-    return;
-  }
+    function renderTabs() {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      const tabsDiv = document.getElementById('tabs');
+      tabsDiv.innerHTML = "";
 
-  const index = activeListIndex;
-  const listDiv = document.createElement('div');
-  listDiv.innerHTML = `
-    <input type="text" id="newTask_${index}" placeholder="Add a task">
-    <button onclick="addTask(${index})">Add</button>
-    <ul id="list_${index}"></ul>
-  `;
-  container.appendChild(listDiv);
+      user.lists.forEach((list, i) => {
+        const tab = document.createElement('button');
+        tab.textContent = list.name;
+        tab.className = "list-button";
+        tab.onclick = () => { activeListIndex = i; renderTasks(); };
+        tabsDiv.appendChild(tab);
+      });
+    }
 
-  const ul = document.getElementById(`list_${index}`);
-  allLists[index].forEach(task => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <input type="checkbox" ${task.checked ? "checked" : ""} onchange="updateTask(${index})">
-      <input type="text" value="${task.text}" onchange="updateTask(${index})">
-      <button onclick="deleteTask(${index}, this)">❌</button>
-    `;
-    ul.appendChild(li);
-  });
-}
+    function createList() {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      user.lists.push({ name: `List ${user.lists.length + 1}`, tasks: [] });
+      localStorage.setItem('users', JSON.stringify(users));
+      renderTabs();
+    }
 
-// --------- Tasks ---------
-function createNewList() {
-  allLists.push([]);
-  activeListIndex = allLists.length - 1;
-  saveAllLists();
-  renderLists();
-}
+    function addTask() {
+      const taskInput = document.getElementById('taskInput');
+      const task = taskInput.value.trim();
+      if (!task) return;
 
-function addTask(listIndex) {
-  const input = document.getElementById(`newTask_${listIndex}`);
-  const taskText = input.value.trim();
-  if (!taskText) return;
-  allLists[listIndex].push({ text: taskText, checked: false });
-  input.value = "";
-  saveAllLists();
-  renderLists();
-}
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      user.lists[activeListIndex].tasks.push({ text: task, done: false });
+      localStorage.setItem('users', JSON.stringify(users));
+      taskInput.value = "";
+      renderTasks();
+    }
 
-function updateTask(listIndex) {
-  const ul = document.getElementById(`list_${listIndex}`);
-  allLists[listIndex] = Array.from(ul.children).map(li => ({
-    text: li.querySelector('input[type=text]').value,
-    checked: li.querySelector('input[type=checkbox]').checked
-  }));
-  saveAllLists();
-}
+    function renderTasks() {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = "";
 
-function deleteTask(listIndex, button) {
-  const ul = document.getElementById(`list_${listIndex}`);
-  const index = Array.from(ul.children).indexOf(button.parentElement);
-  allLists[listIndex].splice(index, 1);
-  saveAllLists();
-  renderLists();
-}
+      user.lists[activeListIndex].tasks.forEach((task, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${i})">
+          <input type="text" value="${task.text}" onchange="editTask(${i}, this.value)">
+          <button onclick="deleteTask(${i})">🗑️</button>
+        `;
+        taskList.appendChild(li);
+      });
+    }
 
-function confirmDeleteList(listIndex) {
-  if (confirm("Are you sure you want to delete this list and all its tasks?")) {
-    allLists.splice(listIndex, 1);
-    if (allLists.length === 0) activeListIndex = 0;
-    else if (activeListIndex >= allLists.length) activeListIndex = allLists.length - 1;
-    saveAllLists();
-    renderLists();
-  }
-}
-</script>
+    function toggleTask(index) {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      user.lists[activeListIndex].tasks[index].done = !user.lists[activeListIndex].tasks[index].done;
+      localStorage.setItem('users', JSON.stringify(users));
+      renderTasks();
+    }
+
+    function editTask(index, newText) {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      user.lists[activeListIndex].tasks[index].text = newText;
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    function deleteTask(index) {
+      const users = JSON.parse(localStorage.getItem('users'));
+      const user = users[currentUser];
+      user.lists[activeListIndex].tasks.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(users));
+      renderTasks();
+    }
+  </script>
 </body>
 </html>
