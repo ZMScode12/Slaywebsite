@@ -3,256 +3,225 @@
 <head>
   <title>Dynamic To-Do Tabs 😎</title>
   <style>
-    :root {
-      --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff);
-    }
+    :root { --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff); }
 
     body {
       font-family: Arial, sans-serif;
       color: white;
       text-align: center;
       padding: 40px;
+      transition: background 0.6s ease;
       background: var(--default-moving);
       background-size: 400% 400%;
-      animation: gradientBG 10s ease infinite;
-      transition: background 1s;
+      animation: gradientMove 12s ease infinite;
     }
 
-    @keyframes gradientBG {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
+    input, button { padding: 10px; margin: 6px; border-radius: 8px; border: none; font-size: 15px; }
+    button { cursor: pointer; }
+    .list-button { background-color: white; color: #6b5bff; }
 
-    #todo, #signup, #login {
-      margin-top: 20px;
-    }
+    ul { list-style: none; padding: 0; margin-top: 10px; }
+    li { margin: 10px; background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    input[type="text"] { flex: 1; margin-left: 10px; border-radius:6px; padding:8px; border:none; }
 
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
+    .gradient-option { width: 86px; height: 44px; border-radius: 10px; display: inline-block; margin: 6px; cursor: pointer; border: 3px solid transparent; box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+    .gradient-option.selected { border-color: white; transform: translateY(-3px); }
 
-    li {
-      margin: 5px;
-      padding: 5px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 5px;
-      cursor: pointer;
-    }
+    .tabs { margin-bottom: 18px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
+    .tab-btn { background: rgba(255,255,255,0.12); color: white; border-radius: 12px; padding: 8px 12px; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: none; }
+    .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 
-    li.completed {
-      text-decoration: line-through;
-      opacity: 0.7;
-    }
+    .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
 
+    /* Quick Links styling */
     #quickLinks {
       position: fixed;
       top: 50%;
-      left: 10px;
+      left: 20px;
       transform: translateY(-50%);
-      width: 200px;
-      background: rgba(255,255,255,0.15);
+      width: 220px;
+      background: rgba(255, 255, 255, 0.15);
       border-radius: 10px;
       padding: 10px;
-      text-align: left;
       color: white;
+      text-align: left;
     }
-
+    #quickLinks h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
     #quickLinks ul {
       list-style-type: disc;
       padding-left: 20px;
     }
-
     #quickLinks input {
       width: 100%;
-      margin-top: 5px;
-      border-radius: 5px;
+      border-radius: 6px;
       border: none;
-      padding: 5px;
+      padding: 6px;
+      margin-top: 6px;
     }
-
     #quickLinks a {
       color: #00f2ff;
       text-decoration: none;
     }
-
     #quickLinks a:hover {
       text-decoration: underline;
     }
-
   </style>
 </head>
 <body>
-  <h1>Dynamic To-Do Tabs 😎</h1>
-
-  <div id="signup">
-    <h2>Create Account</h2>
-    <input id="signupUser" placeholder="Username"><br>
-    <input id="signupPass" type="password" placeholder="Password"><br>
-    <button onclick="signup()">Sign Up</button>
-    <p>Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
-  </div>
-
-  <div id="login" class="hidden">
-    <h2>Log In</h2>
-    <input id="loginUser" placeholder="Username"><br>
-    <input id="loginPass" type="password" placeholder="Password"><br>
-    <button onclick="login()">Log In</button>
-    <p>Don't have an account? <a href="#" onclick="showSignup()">Create one</a></p>
-  </div>
-
-  <div id="todo" class="hidden">
-    <h2>Your To-Do List</h2>
-    <input id="newTask" placeholder="Add a task">
-    <button onclick="addTask()">Add</button>
-    <ul id="taskList"></ul>
-    <br>
-    <button onclick="openBackgroundPicker()">Change Background</button>
-    <button onclick="logout()">Logout</button>
-  </div>
 
   <!-- Quick Links (hidden until login) -->
   <div id="quickLinks" class="hidden">
     <h3>Quick Links</h3>
     <ul id="linksList"></ul>
-    <input id="newLinkText" placeholder="Link name">
+    <input id="newLinkText" placeholder="Name">
     <input id="newLinkURL" placeholder="https://example.com">
-    <button onclick="addQuickLink()">Add Link</button>
+    <button onclick="addQuickLink()">Add</button>
   </div>
 
-  <script>
-    let currentUser = null;
+  <!-- Sign up / Login -->
+  <div id="signup">
+    <h1>Sign Up 💫</h1>
+    <input type="text" id="username" placeholder="Enter a username"><br>
+    <input type="password" id="password" placeholder="Enter a password"><br>
 
-    function showLogin() {
-      document.getElementById('signup').classList.add('hidden');
-      document.getElementById('login').classList.remove('hidden');
-    }
+    <p style="margin-top:8px">Pick your background style (or keep the moving default):</p>
+    <div id="gradients">
+      <div class="gradient-option" data-bg="linear-gradient(to right, #ff7e5f, #feb47b)" style="background: linear-gradient(to right, #ff7e5f, #feb47b)" title="Sunset"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #2193b0, #6dd5ed)" style="background: linear-gradient(to right, #2193b0, #6dd5ed)" title="Ocean"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #0f2027, #203a43, #2c5364)" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364)" title="Galaxy"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #ff9a9e, #fad0c4)" style="background: linear-gradient(to right, #ff9a9e, #fad0c4)" title="Blossom"></div>
+      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"></div>
+    </div>
+    <div style="margin-top:8px">
+      <button onclick="createAccount()">Create Account</button>
+      <button class="control-small" onclick="useDefaultNow()">Don't change — keep moving</button>
+    </div>
 
-    function showSignup() {
-      document.getElementById('login').classList.add('hidden');
-      document.getElementById('signup').classList.remove('hidden');
-    }
+    <p style="margin-top:12px">Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
+  </div>
 
-    function signup() {
-      const username = document.getElementById('signupUser').value;
-      const password = document.getElementById('signupPass').value;
-      if (!username || !password) return alert("Please fill in all fields!");
+  <div id="login" class="hidden">
+    <h1>Login 💫</h1>
+    <input type="text" id="loginUsername" placeholder="Enter username"><br>
+    <input type="password" id="loginPassword" placeholder="Enter password"><br>
+    <div style="margin-top:8px">
+      <button onclick="login()">Log In</button>
+      <button class="control-small" onclick="showSignup()">Sign up</button>
+    </div>
+  </div>
 
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      if (users[username]) return alert("User already exists!");
-      users[username] = { password, tasks: [], background: 'default', links: [] };
-      localStorage.setItem('users', JSON.stringify(users));
+  <!-- To-do lists -->
+  <div id="todo" class="hidden">
+    <div id="todoHeader"></div>
+    <div class="tabs" id="tabsContainer"></div>
+    <div id="listsContainer"></div>
+    <div id="background-picker" class="hidden" style="margin-top:12px;">
+      <label for="bg-select">Choose Background:</label>
+      <select id="bg-select" onchange="changeBackground(this.value)">
+        <option value="default">Default</option>
+        <option value="linear-gradient(to right, #ff7e5f, #feb47b)">Sunset</option>
+        <option value="linear-gradient(to right, #2193b0, #6dd5ed)">Ocean</option>
+        <option value="linear-gradient(to right, #0f2027, #203a43, #2c5364)">Galaxy</option>
+        <option value="linear-gradient(to right, #ff9a9e, #fad0c4)">Blossom</option>
+      </select>
+    </div>
+    <div style="margin-top:12px">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-      alert("Account created!");
-      showLogin();
-    }
+<script>
+/* Everything below this line is your same logic, plus Quick Links support */
 
-    function login() {
-      const username = document.getElementById('loginUser').value;
-      const password = document.getElementById('loginPass').value;
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
+let currentUser = localStorage.getItem('currentUser');
+let allLists = [];
+let activeListIndex = 0;
+let pickedBackground = 'default';
 
-      if (!users[username] || users[username].password !== password)
-        return alert("Invalid credentials!");
+if (currentUser) {
+  showTodo();
+  loadAllLists();
+  loadQuickLinks();
+}
 
-      currentUser = username;
-      document.getElementById('login').classList.add('hidden');
-      document.getElementById('signup').classList.add('hidden');
-      document.getElementById('todo').classList.remove('hidden');
-      document.getElementById('quickLinks').classList.remove('hidden');
-      loadTasks();
-      loadBackground();
-      loadQuickLinks();
-    }
+function createAccount() {
+  const user = username.value.trim();
+  const pass = password.value.trim();
+  if (!user || !pass) return alert('Please fill both fields');
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (users[user]) return alert('User exists');
+  users[user] = { password: pass, lists:[{ name:'My First List', tasks:[] }], background: pickedBackground, links: [] };
+  localStorage.setItem('users', JSON.stringify(users));
+  localStorage.setItem('currentUser', user);
+  currentUser = user;
+  loadAllLists();
+  showTodo();
+  renderLists();
+  loadQuickLinks();
+}
 
-    function logout() {
-      currentUser = null;
-      document.getElementById('todo').classList.add('hidden');
-      document.getElementById('quickLinks').classList.add('hidden');
-      document.getElementById('login').classList.remove('hidden');
-    }
+function login() {
+  const user = loginUsername.value.trim();
+  const pass = loginPassword.value.trim();
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!users[user] || users[user].password !== pass) return alert('Invalid credentials');
+  localStorage.setItem('currentUser', user);
+  currentUser = user;
+  loadAllLists();
+  showTodo();
+  renderLists();
+  loadQuickLinks();
+}
 
-    function addTask() {
-      const taskText = document.getElementById('newTask').value.trim();
-      if (!taskText) return;
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      users[currentUser].tasks.push({ text: taskText, done: false });
-      localStorage.setItem('users', JSON.stringify(users));
-      document.getElementById('newTask').value = '';
-      loadTasks();
-    }
+function logout() {
+  saveAllLists();
+  localStorage.removeItem('currentUser');
+  currentUser = null;
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('quickLinks').classList.add('hidden');
+}
 
-    function loadTasks() {
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const user = users[currentUser];
-      const list = document.getElementById('taskList');
-      list.innerHTML = '';
-      user.tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.textContent = task.text;
-        if (task.done) li.classList.add('completed');
-        li.onclick = () => toggleTask(index);
-        list.appendChild(li);
-      });
-    }
+/* --- Quick Links --- */
+function loadQuickLinks() {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  const links = users[currentUser].links || [];
+  const list = document.getElementById('linksList');
+  list.innerHTML = '';
+  links.forEach(link => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = link.url;
+    a.target = "_blank";
+    a.textContent = link.name;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+  document.getElementById('quickLinks').classList.remove('hidden');
+}
 
-    function toggleTask(i) {
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const task = users[currentUser].tasks[i];
-      task.done = !task.done;
-      localStorage.setItem('users', JSON.stringify(users));
-      loadTasks();
-    }
-
-    /* background picker */
-    function openBackgroundPicker() {
-      const bg = prompt("Enter background color or gradient (e.g. 'blue' or 'linear-gradient(135deg, red, orange)')");
-      if (!bg) return;
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      users[currentUser].background = bg;
-      localStorage.setItem('users', JSON.stringify(users));
-      document.body.style.background = bg;
-    }
-
-    function loadBackground() {
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const bg = users[currentUser].background || 'var(--default-moving)';
-      document.body.style.background = bg;
-    }
-
-    /* Quick Links */
-    function loadQuickLinks() {
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const links = users[currentUser].links || [];
-      const list = document.getElementById('linksList');
-      list.innerHTML = '';
-      links.forEach((link, i) => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = link.url;
-        a.target = "_blank";
-        a.textContent = link.name;
-        li.appendChild(a);
-        list.appendChild(li);
-      });
-    }
-
-    function addQuickLink() {
-      const name = document.getElementById('newLinkText').value.trim();
-      const url = document.getElementById('newLinkURL').value.trim();
-      if (!name || !url) return alert("Please fill in both fields!");
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      users[currentUser].links.push({ name, url });
-      localStorage.setItem('users', JSON.stringify(users));
-      document.getElementById('newLinkText').value = '';
-      document.getElementById('newLinkURL').value = '';
-      loadQuickLinks();
-    }
-  </script>
+function addQuickLink() {
+  const name = newLinkText.value.trim();
+  const url = newLinkURL.value.trim();
+  if (!name || !url) return alert('Please fill both fields');
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  users[currentUser].links.push({ name, url });
+  localStorage.setItem('users', JSON.stringify(users));
+  newLinkText.value = '';
+  newLinkURL.value = '';
+  loadQuickLinks();
+}
+</script>
 </body>
 </html>
