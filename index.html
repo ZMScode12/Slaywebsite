@@ -1,3 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dynamic To-Do Tabs 😎</title>
+  <style>
+    :root {
+      --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff);
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+      padding: 40px;
+      transition: background 0.6s ease;
+      background: var(--default-moving);
+      background-size: 400% 400%;
+      animation: gradientMove 12s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hidden { display: none; }
+    input, button { padding: 10px; margin: 6px; border-radius: 8px; border: none; font-size: 15px; }
+    button { cursor: pointer; }
+    .list-button { background-color: white; color: #6b5bff; }
+
+    ul { list-style: none; padding: 0; margin-top: 10px; }
+    li {
+      margin: 10px;
+      background: rgba(255,255,255,0.14);
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    input[type="text"] { flex: 1; margin-left: 10px; border-radius:6px; padding:8px; border:none; }
+
+    /* Gradient picker */
+    .gradient-option {
+      width: 86px;
+      height: 44px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 6px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    }
+    .gradient-option.selected {
+      border-color: white;
+      transform: translateY(-3px);
+    }
+
+    /* Tabs style */
+    .tabs { margin-bottom: 18px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
+    .tab-btn { background: rgba(255,255,255,0.12); color: white; border-radius: 12px; padding: 8px 12px; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: none; }
+    .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+
+    .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Sign up / Login -->
+  <div id="signup">
+    <h1>Sign Up 💫</h1>
+    <input type="text" id="username" placeholder="Enter a username"><br>
+    <input type="password" id="password" placeholder="Enter a password"><br>
+
+    <p style="margin-top:8px">Pick your background style (or keep the moving default):</p>
+    <div id="gradients">
+      <div class="gradient-option" data-bg="linear-gradient(to right, #ff7e5f, #feb47b)" style="background: linear-gradient(to right, #ff7e5f, #feb47b)" title="Sunset"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #2193b0, #6dd5ed)" style="background: linear-gradient(to right, #2193b0, #6dd5ed)" title="Ocean"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #0f2027, #203a43, #2c5364)" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364)" title="Galaxy"></div>
+      <div class="gradient-option" data-bg="linear-gradient(to right, #ff9a9e, #fad0c4)" style="background: linear-gradient(to right, #ff9a9e, #fad0c4)" title="Blossom"></div>
+      <!-- "Don't change" option = keep moving default -->
+      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"> </div>
+    </div>
+    <div style="margin-top:8px">
+      <button onclick="createAccount()">Create Account</button>
+      <button class="control-small" onclick="useDefaultNow()">Don't change — keep moving</button>
+    </div>
+
+    <p style="margin-top:12px">Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
+  </div>
+
+  <div id="login" class="hidden">
+    <h1>Login 💫</h1>
+    <input type="text" id="loginUsername" placeholder="Enter username"><br>
+    <input type="password" id="loginPassword" placeholder="Enter password"><br>
+    <div style="margin-top:8px">
+      <button onclick="login()">Log In</button>
+      <button class="control-small" onclick="showSignup()">Sign up</button>
+    </div>
+  </div>
+
+  <!-- To-do lists -->
+  <div id="todo" class="hidden">
+    <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
+    <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
+    <div id="listsContainer"></div> <!-- Tasks for active tab -->
+    <div style="margin-top:12px">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
 <script>
 /* --------- State --------- */
 let currentUser = localStorage.getItem('currentUser');
@@ -7,17 +120,13 @@ let pickedBackground = 'default'; // 'default' keeps moving gradient, otherwise 
 
 /* --------- Helpers for gradients UI --------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
-
 function setPickedBgValue(val) {
   pickedBackground = val;
-
   // update visual selection
   gradientEls.forEach(el => el.classList.toggle('selected', el.getAttribute('data-bg') === val));
-
-  // preview immediately
+  // preview it immediately
   applyBackgroundPreview(val);
 }
-
 function applyBackgroundPreview(val) {
   if (val === 'default') {
     document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim();
@@ -29,13 +138,12 @@ function applyBackgroundPreview(val) {
     document.body.style.animation = '';
   }
 }
-
-// wire up clicks for signup gradient options
+// wire up clicks
 gradientEls.forEach(el => el.addEventListener('click', () => {
-  const val = el.getAttribute('data-bg');
-  setPickedBgValue(val);
+  setPickedBgValue(el.getAttribute('data-bg'));
 }));
 
+// "Don't change" quick button (preview + select default)
 function useDefaultNow() {
   setPickedBgValue('default');
 }
@@ -45,9 +153,8 @@ setPickedBgValue('default');
 
 /* --------- Load existing session --------- */
 if (currentUser) {
-  loadAllLists();
   showTodo();
-  renderLists();
+  loadAllLists();
 }
 
 /* --------- Account functions --------- */
@@ -59,16 +166,15 @@ function createAccount() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (users[user]) { alert('Username exists'); return; }
 
+  // create with one default list object (with name + tasks)
   users[user] = {
     password: pass,
     lists: [{ name: 'My First List', tasks: [] }],
-    background: pickedBackground
+    background: pickedBackground // either 'default' or a gradient string
   };
-
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', user);
   currentUser = user;
-
   loadAllLists();
   showTodo();
   renderLists();
@@ -88,15 +194,12 @@ function login() {
   const user = document.getElementById('loginUsername').value.trim();
   const pass = document.getElementById('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-
   if (!users[user] || users[user].password !== pass) {
     alert('Invalid username or password');
     return;
   }
-
   localStorage.setItem('currentUser', user);
   currentUser = user;
-
   loadAllLists();
   showTodo();
   renderLists();
@@ -104,8 +207,10 @@ function login() {
 
 /* --------- show/hide and background application --------- */
 function showTodo() {
-  if (!currentUser) return;
+  // load user data and apply their background
   const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+
   const user = users[currentUser];
   const bg = user.background || 'default';
   applyBackgroundPreview(bg);
@@ -123,77 +228,27 @@ function showTodo() {
   `;
 }
 
-/* --------- Background picker modal --------- */
+/* let users change background after signup/login */
 function openBackgroundPicker() {
-  const overlay = document.createElement('div');
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.width = '100%';
-  overlay.style.height = '100%';
-  overlay.style.background = 'rgba(0,0,0,0.7)';
-  overlay.style.display = 'flex';
-  overlay.style.alignItems = 'center';
-  overlay.style.justifyContent = 'center';
-  overlay.style.zIndex = '9999';
-
-  const pickerBox = document.createElement('div');
-  pickerBox.style.background = 'rgba(255,255,255,0.15)';
-  pickerBox.style.padding = '20px';
-  pickerBox.style.borderRadius = '14px';
-  pickerBox.style.color = 'white';
-  pickerBox.style.textAlign = 'center';
-  pickerBox.style.boxShadow = '0 0 20px rgba(0,0,0,0.4)';
-
-  pickerBox.innerHTML = `
-    <h2>Choose a new background ✨</h2>
-    <div id="gradientChoices" style="margin-top:12px"></div>
-    <button style="margin-top:12px;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;">
-      Close
-    </button>
-  `;
-
-  const closeBtn = pickerBox.querySelector('button');
-  closeBtn.onclick = () => document.body.removeChild(overlay);
-
-  overlay.appendChild(pickerBox);
-  document.body.appendChild(overlay);
-
-  const choiceDiv = pickerBox.querySelector('#gradientChoices');
-  const gradients = Array.from(document.querySelectorAll('.gradient-option'));
-  gradients.forEach(g => {
-    const clone = g.cloneNode(true);
-    clone.style.margin = '6px';
-    clone.onclick = () => {
-      const val = clone.getAttribute('data-bg');
-      setPickedBgValue(val);
-
-      // save permanently for logged-in user
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      if (currentUser && users[currentUser]) {
-        users[currentUser].background = val;
-        localStorage.setItem('users', JSON.stringify(users));
-      }
-    };
-    choiceDiv.appendChild(clone);
-  });
-
-  // pre-select current background
+  // show the signup area so they can pick — but keep data
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+  // pre-select the user's current background in the UI
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const bg = (users[currentUser] && users[currentUser].background) || 'default';
   setPickedBgValue(bg);
 }
 
-/* --------- Logout --------- */
+/* logout */
 function logout() {
+  // save current lists first
   saveAllLists();
   localStorage.removeItem('currentUser');
   currentUser = null;
   allLists = [];
   activeListIndex = 0;
-
+  // restore default moving gradient preview
   setPickedBgValue('default');
-
   document.getElementById('todo').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
   document.getElementById('listsContainer').innerHTML = "";
@@ -206,6 +261,7 @@ function saveAllLists() {
   if (!currentUser) return;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   users[currentUser].lists = allLists;
+  // keep background as-is
   localStorage.setItem('users', JSON.stringify(users));
 }
 
@@ -213,6 +269,7 @@ function loadAllLists() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) { allLists = []; return; }
   allLists = users[currentUser].lists || [];
+  // ensure each list object has name and tasks keys (backwards compatibility)
   allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
   activeListIndex = 0;
 }
@@ -226,7 +283,6 @@ function renderLists() {
 function renderTabs() {
   const tabs = document.getElementById('tabsContainer');
   tabs.innerHTML = "";
-
   allLists.forEach((list, i) => {
     const btn = document.createElement('button');
     btn.className = 'tab-btn' + (i === activeListIndex ? ' active' : '');
@@ -234,16 +290,18 @@ function renderTabs() {
     btn.onclick = () => { activeListIndex = i; renderLists(); };
     tabs.appendChild(btn);
 
+    // rename button
     const renameBtn = document.createElement('button');
     renameBtn.className = 'control-small';
     renameBtn.textContent = '✏️';
-    renameBtn.onclick = e => { e.stopPropagation(); renameList(i); };
+    renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
     tabs.appendChild(renameBtn);
 
+    // delete button
     const delBtn = document.createElement('button');
     delBtn.className = 'control-small';
     delBtn.textContent = '🗑';
-    delBtn.onclick = e => { e.stopPropagation(); confirmDeleteList(i); };
+    delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteList(i); };
     tabs.appendChild(delBtn);
   });
 }
@@ -344,10 +402,8 @@ function deleteTask(taskIndex) {
 
 /* --------- Small util --------- */
 function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+</body>
+</html>
