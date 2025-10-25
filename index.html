@@ -229,14 +229,47 @@ function showTodo() {
 }
 /* let users change background after signup/login */
 function openBackgroundPicker() {
-  // don't hide todo or show signup—just open the picker
+  // show the background picker only
+  document.getElementById('background-picker').classList.remove('hidden');
+
+  // pre-select the user's current background in the UI
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const bg = (users[currentUser] && users[currentUser].background) || 'default';
-  setPickedBgValue(bg);
-
-  // optionally, show a background picker UI element if you have one
-  document.getElementById('background-picker').classList.remove('hidden');
+  document.getElementById('bg-select').value = bg;
 }
+
+/* change the background immediately and save for user */
+function changeBackground(value) {
+  document.body.style.background = getBackgroundStyle(value);
+
+  // save for current user
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (currentUser) {
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].background = value;
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+}
+
+/* map selection to actual background styles */
+function getBackgroundStyle(name) {
+  switch(name) {
+    case 'gradient1':
+      return 'linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff)';
+    case 'gradient2':
+      return 'linear-gradient(135deg, #ff6600, #00ff66, #0066ff)';
+    default:
+      return '#222'; // default background
+  }
+}
+
+/* optional: apply current user's background on page load */
+window.addEventListener('load', () => {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  document.body.style.background = getBackgroundStyle(bg);
+});
+
 
 /* logout */
 function logout() {
@@ -403,7 +436,22 @@ function deleteTask(taskIndex) {
 function escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+  }
+  <!-- Background Picker -->
+<div id="background-picker" class="hidden" style="margin: 20px;">
+  <label for="bg-select">Choose Background:</label>
+  <select id="bg-select" onchange="changeBackground(this.value)">
+    <option value="default">Default</option>
+    <option value="gradient1">Gradient 1</option>
+    <option value="gradient2">Gradient 2</option>
+  </select>
+</div>
+
+<!-- Button to open picker -->
+<button onclick="openBackgroundPicker()">Change Background</button>
+
 </script>
 </body>
 </html>
+
 
