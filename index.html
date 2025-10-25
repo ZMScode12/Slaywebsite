@@ -39,54 +39,9 @@
     .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
-
-    /* Quick Links styling */
-    #quickLinks {
-      position: fixed;
-      top: 50%;
-      left: 20px;
-      transform: translateY(-50%);
-      width: 220px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      padding: 10px;
-      color: white;
-      text-align: left;
-    }
-    #quickLinks h3 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-    #quickLinks ul {
-      list-style-type: disc;
-      padding-left: 20px;
-    }
-    #quickLinks input {
-      width: 100%;
-      border-radius: 6px;
-      border: none;
-      padding: 6px;
-      margin-top: 6px;
-    }
-    #quickLinks a {
-      color: #00f2ff;
-      text-decoration: none;
-    }
-    #quickLinks a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
-
-  <!-- Quick Links (hidden until login) -->
-  <div id="quickLinks" class="hidden">
-    <h3>Quick Links</h3>
-    <ul id="linksList"></ul>
-    <input id="newLinkText" placeholder="Name">
-    <input id="newLinkURL" placeholder="https://example.com">
-    <button onclick="addQuickLink()">Add</button>
-  </div>
 
   <!-- Sign up / Login -->
   <div id="signup">
@@ -122,9 +77,28 @@
 
   <!-- To-do lists -->
   <div id="todo" class="hidden">
-    <div id="todoHeader"></div>
-    <div class="tabs" id="tabsContainer"></div>
-    <div id="listsContainer"></div>
+
+    <!-- Quick Links Sidebar -->
+    <div id="quickLinks" class="hidden" style="
+        position: fixed;
+        top: 40px;
+        left: 0;
+        width: 200px;
+        background: rgba(0,0,0,0.3);
+        padding: 12px;
+        border-radius: 0 12px 12px 0;
+        text-align: left;
+        z-index: 9999;
+    ">
+        <h3>Quick Links</h3>
+        <ul id="quickLinksList" style="list-style: disc; padding-left: 20px;"></ul>
+        <input type="text" id="newQuickLink" placeholder="New link URL" style="width:100%; margin-top:6px;">
+        <button onclick="addQuickLink()" style="margin-top:6px; width:100%;">Add</button>
+    </div>
+
+    <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
+    <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
+    <div id="listsContainer"></div> <!-- Tasks for active tab -->
     <div id="background-picker" class="hidden" style="margin-top:12px;">
       <label for="bg-select">Choose Background:</label>
       <select id="bg-select" onchange="changeBackground(this.value)">
@@ -141,87 +115,266 @@
   </div>
 
 <script>
-/* Everything below this line is your same logic, plus Quick Links support */
-
+/* --------- State --------- */
 let currentUser = localStorage.getItem('currentUser');
 let allLists = [];
 let activeListIndex = 0;
 let pickedBackground = 'default';
 
+/* --------- Gradient selection --------- */
+const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
+function setPickedBgValue(val) {
+  pickedBackground = val;
+  gradientEls.forEach(el => el.classList.toggle('selected', el.getAttribute('data-bg') === val));
+  applyBackgroundPreview(val);
+}
+function applyBackgroundPreview(val) {
+  if (val === 'default') {
+    document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim();
+    document.body.style.backgroundSize = '400% 400%';
+    document.body.style.animation = 'gradientMove 12s ease infinite';
+  } else {
+    document.body.style.background = val;
+    document.body.style.backgroundSize = '';
+    document.body.style.animation = '';
+  }
+}
+gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
+function useDefaultNow() { setPickedBgValue('default'); }
+
+/* --------- Load session --------- */
 if (currentUser) {
   showTodo();
   loadAllLists();
-  loadQuickLinks();
 }
 
+/* --------- Account functions --------- */
 function createAccount() {
-  const user = username.value.trim();
-  const pass = password.value.trim();
-  if (!user || !pass) return alert('Please fill both fields');
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  if (!user || !pass) { alert('Please fill both username and password'); return; }
+
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (users[user]) return alert('User exists');
-  users[user] = { password: pass, lists:[{ name:'My First List', tasks:[] }], background: pickedBackground, links: [] };
+  if (users[user]) { alert('Username exists'); return; }
+
+  users[user] = {
+    password: pass,
+    lists: [{ name: 'My First List', tasks: [] }],
+    background: pickedBackground,
+    quickLinks: []
+  };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', user);
   currentUser = user;
   loadAllLists();
   showTodo();
   renderLists();
-  loadQuickLinks();
 }
 
+function showLogin() {
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+}
+function showSignup() {
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+}
 function login() {
-  const user = loginUsername.value.trim();
-  const pass = loginPassword.value.trim();
+  const user = document.getElementById('loginUsername').value.trim();
+  const pass = document.getElementById('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!users[user] || users[user].password !== pass) return alert('Invalid credentials');
+  if (!users[user] || users[user].password !== pass) { alert('Invalid username or password'); return; }
   localStorage.setItem('currentUser', user);
   currentUser = user;
   loadAllLists();
   showTodo();
   renderLists();
-  loadQuickLinks();
 }
 
+/* --------- Show To-do --------- */
+function showTodo() {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+
+  const user = users[currentUser];
+  applyBackgroundPreview(user.background || 'default');
+
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('todo').classList.remove('hidden');
+
+  document.getElementById('todoHeader').innerHTML = `
+    <h1>Welcome, ${currentUser}!</h1>
+    <div style="margin-top:8px">
+      <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
+      <button class="control-small" onclick="openBackgroundPicker()">Change background</button>
+    </div>
+  `;
+
+  renderQuickLinks();
+}
+
+/* --------- Quick Links --------- */
+function renderQuickLinks() {
+    const quickLinksDiv = document.getElementById('quickLinks');
+    const listEl = document.getElementById('quickLinksList');
+    listEl.innerHTML = "";
+
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userLinks = (users[currentUser] && users[currentUser].quickLinks) || [];
+
+    userLinks.forEach(link => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+        listEl.appendChild(li);
+    });
+
+    quickLinksDiv.classList.toggle('hidden', !currentUser);
+}
+
+function addQuickLink() {
+    const urlInput = document.getElementById('newQuickLink');
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    users[currentUser].quickLinks = users[currentUser].quickLinks || [];
+    users[currentUser].quickLinks.push(url);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    urlInput.value = "";
+    renderQuickLinks();
+}
+
+/* --------- Background Picker --------- */
+function openBackgroundPicker() {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  document.getElementById('background-picker').classList.toggle('hidden');
+  document.getElementById('bg-select').value = bg;
+}
+function changeBackground(value) {
+  document.body.style.background = value === 'default'
+    ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim()
+    : value;
+
+  // save
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (currentUser) {
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].background = value;
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+}
+
+/* --------- Logout --------- */
 function logout() {
   saveAllLists();
   localStorage.removeItem('currentUser');
   currentUser = null;
+  allLists = [];
+  activeListIndex = 0;
+  setPickedBgValue('default');
   document.getElementById('todo').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
-  document.getElementById('quickLinks').classList.add('hidden');
+  document.getElementById('listsContainer').innerHTML = "";
+  document.getElementById('tabsContainer').innerHTML = "";
+  document.getElementById('todoHeader').innerHTML = "";
+  renderQuickLinks();
 }
 
-/* --- Quick Links --- */
-function loadQuickLinks() {
+/* --------- Lists --------- */
+function saveAllLists() {
+  if (!currentUser) return;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!currentUser || !users[currentUser]) return;
-  const links = users[currentUser].links || [];
-  const list = document.getElementById('linksList');
-  list.innerHTML = '';
-  links.forEach(link => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = link.url;
-    a.target = "_blank";
-    a.textContent = link.name;
-    li.appendChild(a);
-    list.appendChild(li);
-  });
-  document.getElementById('quickLinks').classList.remove('hidden');
-}
-
-function addQuickLink() {
-  const name = newLinkText.value.trim();
-  const url = newLinkURL.value.trim();
-  if (!name || !url) return alert('Please fill both fields');
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  users[currentUser].links.push({ name, url });
+  users[currentUser].lists = allLists;
   localStorage.setItem('users', JSON.stringify(users));
-  newLinkText.value = '';
-  newLinkURL.value = '';
-  loadQuickLinks();
 }
+
+function loadAllLists() {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) { allLists = []; return; }
+  allLists = users[currentUser].lists || [];
+  allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
+  activeListIndex = 0;
+}
+
+/* Render */
+function renderLists() {
+  renderTabs();
+  renderActiveList();
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabsContainer');
+  tabs.innerHTML = "";
+  allLists.forEach((list, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === activeListIndex ? ' active' : '');
+    btn.textContent = list.name || `List ${i+1}`;
+    btn.onclick = () => { activeListIndex = i; renderLists(); };
+    tabs.appendChild(btn);
+
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'control-small';
+    renameBtn.textContent = '✏️';
+    renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
+    tabs.appendChild(renameBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'control-small';
+    delBtn.textContent = '🗑';
+    delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteList(i); };
+    tabs.appendChild(delBtn);
+  });
+}
+
+function renderActiveList() {
+  const container = document.getElementById('listsContainer');
+  container.innerHTML = "";
+  if (allLists.length === 0) {
+    container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
+      <h2>No To-Do Lists Yet 😎</h2>
+      <p>Click "+ New To-Do List" to start.</p>
+    </div>`;
+    return;
+  }
+  const index = activeListIndex;
+  const list = allLists[index];
+  const listDiv = document.createElement('div');
+  listDiv.innerHTML = `
+    <h2 style="margin-bottom:6px">${list.name}</h2>
+    <div style="margin-bottom:8px">
+      <input type="text" id="newTask_${index}" placeholder="Add a task...">
+      <button onclick="addTask(${index})">Add</button>
+    </div>
+    <ul id="list_${index}"></ul>
+  `;
+  container.appendChild(listDiv);
+
+  const ul = document.getElementById(`list_${index}`);
+  list.tasks.forEach((task, tIdx) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
+      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}">
+      <button onclick="deleteTask(${tIdx})">🗑️</button>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+/* Task operations */
+function createNewList() { allLists.push({ name: `List ${allLists.length+1}`, tasks: [] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
+function renameList(listIndex) { const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!=="") { allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
+function confirmDeleteList(listIndex) { if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
+function addTask(listIndex) { const input=document.getElementById(`newTask_${listIndex}`); const text=input.value.trim(); if(!text) return; allLists[listIndex].tasks.push({text,done:false}); input.value=""; saveAllLists(); renderLists(); }
+function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
+function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
+function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
+
+function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 </script>
 </body>
 </html>
