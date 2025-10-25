@@ -3,9 +3,7 @@
 <head>
   <title>Dynamic To-Do Tabs 😎</title>
   <style>
-    :root {
-      --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff);
-    }
+    :root { --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff); }
 
     body {
       font-family: Arial, sans-serif;
@@ -30,35 +28,12 @@
     .list-button { background-color: white; color: #6b5bff; }
 
     ul { list-style: none; padding: 0; margin-top: 10px; }
-    li {
-      margin: 10px;
-      background: rgba(255,255,255,0.14);
-      padding: 10px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
+    li { margin: 10px; background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     input[type="text"] { flex: 1; margin-left: 10px; border-radius:6px; padding:8px; border:none; }
 
-    /* Gradient picker */
-    .gradient-option {
-      width: 86px;
-      height: 44px;
-      border-radius: 10px;
-      display: inline-block;
-      margin: 6px;
-      cursor: pointer;
-      border: 3px solid transparent;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-    }
-    .gradient-option.selected {
-      border-color: white;
-      transform: translateY(-3px);
-    }
+    .gradient-option { width: 86px; height: 44px; border-radius: 10px; display: inline-block; margin: 6px; cursor: pointer; border: 3px solid transparent; box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+    .gradient-option.selected { border-color: white; transform: translateY(-3px); }
 
-    /* Tabs style */
     .tabs { margin-bottom: 18px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
     .tab-btn { background: rgba(255,255,255,0.12); color: white; border-radius: 12px; padding: 8px 12px; cursor: pointer; display:inline-flex; align-items:center; gap:6px; border: none; }
     .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -80,8 +55,7 @@
       <div class="gradient-option" data-bg="linear-gradient(to right, #2193b0, #6dd5ed)" style="background: linear-gradient(to right, #2193b0, #6dd5ed)" title="Ocean"></div>
       <div class="gradient-option" data-bg="linear-gradient(to right, #0f2027, #203a43, #2c5364)" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364)" title="Galaxy"></div>
       <div class="gradient-option" data-bg="linear-gradient(to right, #ff9a9e, #fad0c4)" style="background: linear-gradient(to right, #ff9a9e, #fad0c4)" title="Blossom"></div>
-      <!-- "Don't change" option = keep moving default -->
-      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"> </div>
+      <div class="gradient-option" data-bg="default" id="defaultOption" style="background: linear-gradient(135deg,#5b00ff,#ff0066,#00f2ff)" title="Keep moving gradient"></div>
     </div>
     <div style="margin-top:8px">
       <button onclick="createAccount()">Create Account</button>
@@ -106,6 +80,16 @@
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
     <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
     <div id="listsContainer"></div> <!-- Tasks for active tab -->
+    <div id="background-picker" class="hidden" style="margin-top:12px;">
+      <label for="bg-select">Choose Background:</label>
+      <select id="bg-select" onchange="changeBackground(this.value)">
+        <option value="default">Default</option>
+        <option value="linear-gradient(to right, #ff7e5f, #feb47b)">Sunset</option>
+        <option value="linear-gradient(to right, #2193b0, #6dd5ed)">Ocean</option>
+        <option value="linear-gradient(to right, #0f2027, #203a43, #2c5364)">Galaxy</option>
+        <option value="linear-gradient(to right, #ff9a9e, #fad0c4)">Blossom</option>
+      </select>
+    </div>
     <div style="margin-top:12px">
       <button onclick="logout()">Logout</button>
     </div>
@@ -114,17 +98,15 @@
 <script>
 /* --------- State --------- */
 let currentUser = localStorage.getItem('currentUser');
-let allLists = [];               // array of { name: string, tasks: [{text,done}] }
+let allLists = [];
 let activeListIndex = 0;
-let pickedBackground = 'default'; // 'default' keeps moving gradient, otherwise a CSS gradient string
+let pickedBackground = 'default';
 
-/* --------- Helpers for gradients UI --------- */
+/* --------- Gradient selection --------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
 function setPickedBgValue(val) {
   pickedBackground = val;
-  // update visual selection
   gradientEls.forEach(el => el.classList.toggle('selected', el.getAttribute('data-bg') === val));
-  // preview it immediately
   applyBackgroundPreview(val);
 }
 function applyBackgroundPreview(val) {
@@ -138,20 +120,10 @@ function applyBackgroundPreview(val) {
     document.body.style.animation = '';
   }
 }
-// wire up clicks
-gradientEls.forEach(el => el.addEventListener('click', () => {
-  setPickedBgValue(el.getAttribute('data-bg'));
-}));
+gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
+function useDefaultNow() { setPickedBgValue('default'); }
 
-// "Don't change" quick button (preview + select default)
-function useDefaultNow() {
-  setPickedBgValue('default');
-}
-
-/* Initialize signup preview — default selected */
-setPickedBgValue('default');
-
-/* --------- Load existing session --------- */
+/* --------- Load session --------- */
 if (currentUser) {
   showTodo();
   loadAllLists();
@@ -166,11 +138,10 @@ function createAccount() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (users[user]) { alert('Username exists'); return; }
 
-  // create with one default list object (with name + tasks)
   users[user] = {
     password: pass,
     lists: [{ name: 'My First List', tasks: [] }],
-    background: pickedBackground // either 'default' or a gradient string
+    background: pickedBackground
   };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', user);
@@ -184,20 +155,15 @@ function showLogin() {
   document.getElementById('signup').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
 }
-
 function showSignup() {
   document.getElementById('login').classList.add('hidden');
   document.getElementById('signup').classList.remove('hidden');
 }
-
 function login() {
   const user = document.getElementById('loginUsername').value.trim();
   const pass = document.getElementById('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!users[user] || users[user].password !== pass) {
-    alert('Invalid username or password');
-    return;
-  }
+  if (!users[user] || users[user].password !== pass) { alert('Invalid username or password'); return; }
   localStorage.setItem('currentUser', user);
   currentUser = user;
   loadAllLists();
@@ -205,15 +171,13 @@ function login() {
   renderLists();
 }
 
-/* --------- show/hide and background application --------- */
+/* --------- Show To-do --------- */
 function showTodo() {
-  // load user data and apply their background
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return;
 
   const user = users[currentUser];
-  const bg = user.background || 'default';
-  applyBackgroundPreview(bg);
+  applyBackgroundPreview(user.background || 'default');
 
   document.getElementById('signup').classList.add('hidden');
   document.getElementById('login').classList.add('hidden');
@@ -227,22 +191,20 @@ function showTodo() {
     </div>
   `;
 }
-/* let users change background after signup/login */
-function openBackgroundPicker() {
-  // show the background picker only
-  document.getElementById('background-picker').classList.remove('hidden');
 
-  // pre-select the user's current background in the UI
+/* --------- Background Picker --------- */
+function openBackgroundPicker() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  document.getElementById('background-picker').classList.toggle('hidden');
   document.getElementById('bg-select').value = bg;
 }
-
-/* change the background immediately and save for user */
 function changeBackground(value) {
-  document.body.style.background = getBackgroundStyle(value);
+  document.body.style.background = value === 'default'
+    ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim()
+    : value;
 
-  // save for current user
+  // save
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (currentUser) {
     users[currentUser] = users[currentUser] || {};
@@ -251,35 +213,13 @@ function changeBackground(value) {
   }
 }
 
-/* map selection to actual background styles */
-function getBackgroundStyle(name) {
-  switch(name) {
-    case 'gradient1':
-      return 'linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff)';
-    case 'gradient2':
-      return 'linear-gradient(135deg, #ff6600, #00ff66, #0066ff)';
-    default:
-      return '#222'; // default background
-  }
-}
-
-/* optional: apply current user's background on page load */
-window.addEventListener('load', () => {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  const bg = (users[currentUser] && users[currentUser].background) || 'default';
-  document.body.style.background = getBackgroundStyle(bg);
-});
-
-
-/* logout */
+/* --------- Logout --------- */
 function logout() {
-  // save current lists first
   saveAllLists();
   localStorage.removeItem('currentUser');
   currentUser = null;
   allLists = [];
   activeListIndex = 0;
-  // restore default moving gradient preview
   setPickedBgValue('default');
   document.getElementById('todo').classList.add('hidden');
   document.getElementById('login').classList.remove('hidden');
@@ -288,12 +228,11 @@ function logout() {
   document.getElementById('todoHeader').innerHTML = "";
 }
 
-/* --------- Save / Load user lists --------- */
+/* --------- Lists --------- */
 function saveAllLists() {
   if (!currentUser) return;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   users[currentUser].lists = allLists;
-  // keep background as-is
   localStorage.setItem('users', JSON.stringify(users));
 }
 
@@ -301,12 +240,11 @@ function loadAllLists() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) { allLists = []; return; }
   allLists = users[currentUser].lists || [];
-  // ensure each list object has name and tasks keys (backwards compatibility)
   allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
   activeListIndex = 0;
 }
 
-/* --------- Render Tabs & Lists --------- */
+/* Render */
 function renderLists() {
   renderTabs();
   renderActiveList();
@@ -322,14 +260,12 @@ function renderTabs() {
     btn.onclick = () => { activeListIndex = i; renderLists(); };
     tabs.appendChild(btn);
 
-    // rename button
     const renameBtn = document.createElement('button');
     renameBtn.className = 'control-small';
     renameBtn.textContent = '✏️';
     renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
     tabs.appendChild(renameBtn);
 
-    // delete button
     const delBtn = document.createElement('button');
     delBtn.className = 'control-small';
     delBtn.textContent = '🗑';
@@ -341,7 +277,6 @@ function renderTabs() {
 function renderActiveList() {
   const container = document.getElementById('listsContainer');
   container.innerHTML = "";
-
   if (allLists.length === 0) {
     container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
       <h2>No To-Do Lists Yet 😎</h2>
@@ -349,11 +284,9 @@ function renderActiveList() {
     </div>`;
     return;
   }
-
   const index = activeListIndex;
   const list = allLists[index];
   const listDiv = document.createElement('div');
-
   listDiv.innerHTML = `
     <h2 style="margin-bottom:6px">${list.name}</h2>
     <div style="margin-bottom:8px">
@@ -376,82 +309,17 @@ function renderActiveList() {
   });
 }
 
-/* --------- List & Task operations --------- */
-function createNewList() {
-  const name = `List ${allLists.length + 1}`;
-  allLists.push({ name, tasks: [] });
-  saveAllLists();
-  activeListIndex = allLists.length - 1;
-  renderLists();
-}
+/* Task operations */
+function createNewList() { allLists.push({ name: `List ${allLists.length+1}`, tasks: [] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
+function renameList(listIndex) { const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!=="") { allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
+function confirmDeleteList(listIndex) { if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
+function addTask(listIndex) { const input=document.getElementById(`newTask_${listIndex}`); const text=input.value.trim(); if(!text) return; allLists[listIndex].tasks.push({text,done:false}); input.value=""; saveAllLists(); renderLists(); }
+function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
+function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
+function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
 
-function renameList(listIndex) {
-  const currentName = allLists[listIndex].name || `List ${listIndex+1}`;
-  const newName = prompt("Enter a new name for this list:", currentName);
-  if (newName && newName.trim() !== "") {
-    allLists[listIndex].name = newName.trim();
-    saveAllLists();
-    renderLists();
-  }
-}
-
-function confirmDeleteList(listIndex) {
-  if (!confirm("Are you sure you want to delete this list and all its tasks?")) return;
-  allLists.splice(listIndex, 1);
-  if (allLists.length === 0) activeListIndex = 0;
-  else if (activeListIndex >= allLists.length) activeListIndex = allLists.length - 1;
-  saveAllLists();
-  renderLists();
-}
-
-function addTask(listIndex) {
-  const input = document.getElementById(`newTask_${listIndex}`);
-  const text = input.value.trim();
-  if (!text) return;
-  allLists[listIndex].tasks.push({ text, done: false });
-  input.value = "";
-  saveAllLists();
-  renderLists();
-}
-
-function toggleTask(taskIndex) {
-  const list = allLists[activeListIndex];
-  list.tasks[taskIndex].done = !list.tasks[taskIndex].done;
-  saveAllLists();
-  renderLists();
-}
-
-function editTask(taskIndex, newText) {
-  allLists[activeListIndex].tasks[taskIndex].text = newText;
-  saveAllLists();
-}
-
-function deleteTask(taskIndex) {
-  allLists[activeListIndex].tasks.splice(taskIndex, 1);
-  saveAllLists();
-  renderLists();
-}
-
-/* --------- Small util --------- */
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-  }
-  <!-- Background Picker -->
-<div id="background-picker" class="hidden" style="margin: 20px;">
-  <label for="bg-select">Choose Background:</label>
-  <select id="bg-select" onchange="changeBackground(this.value)">
-    <option value="default">Default</option>
-    <option value="gradient1">Gradient 1</option>
-    <option value="gradient2">Gradient 2</option>
-  </select>
-</div>
-
-<!-- Button to open picker -->
-<button onclick="openBackgroundPicker()">Change Background</button>
+function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 </script>
 </body>
 </html>
-
-
