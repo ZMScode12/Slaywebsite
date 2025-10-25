@@ -227,16 +227,15 @@ function showTodo() {
     </div>
   `;
 }
-
 /* let users change background after signup/login */
 function openBackgroundPicker() {
-  // show the signup area so they can pick — but keep data
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-  // pre-select the user's current background in the UI
+  // don't hide todo or show signup—just open the picker
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const bg = (users[currentUser] && users[currentUser].background) || 'default';
   setPickedBgValue(bg);
+
+  // optionally, show a background picker UI element if you have one
+  document.getElementById('background-picker').classList.remove('hidden');
 }
 
 /* logout */
@@ -407,3 +406,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
