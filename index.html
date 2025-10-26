@@ -39,6 +39,28 @@
     .tab-btn.active { background: white; color: #6b5bff; font-weight:600; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
 
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
+
+    /* Quick Links styling (added) */
+    #quickLinks {
+      position: fixed;
+      top: 50%;
+      left: 25%; /* centers horizontally in the left half */
+      transform: translate(-50%, -50%);
+      width: 260px;
+      background: rgba(0,0,0,0.32);
+      padding: 12px;
+      border-radius: 12px;
+      color: white;
+      text-align: left;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; }
+    #quickLinks ul { list-style: disc; padding-left: 18px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #quickLinks li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    #quickLinks a { color: #ffd; text-decoration: underline; max-width: 180px; word-break: break-word; }
+    #quickLinks input { width: 100%; border-radius: 8px; padding:8px; margin-bottom:6px; border:none; }
+    #quickLinks .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -77,25 +99,6 @@
 
   <!-- To-do lists -->
   <div id="todo" class="hidden">
-
-    <!-- Quick Links Sidebar -->
-    <div id="quickLinks" class="hidden" style="
-        position: fixed;
-        top: 40px;
-        left: 0;
-        width: 200px;
-        background: rgba(0,0,0,0.3);
-        padding: 12px;
-        border-radius: 0 12px 12px 0;
-        text-align: left;
-        z-index: 9999;
-    ">
-        <h3>Quick Links</h3>
-        <ul id="quickLinksList" style="list-style: disc; padding-left: 20px;"></ul>
-        <input type="text" id="newQuickLink" placeholder="New link URL" style="width:100%; margin-top:6px;">
-        <button onclick="addQuickLink()" style="margin-top:6px; width:100%;">Add</button>
-    </div>
-
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
     <div class="tabs" id="tabsContainer"></div> <!-- List tabs -->
     <div id="listsContainer"></div> <!-- Tasks for active tab -->
@@ -111,6 +114,17 @@
     </div>
     <div style="margin-top:12px">
       <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Quick Links (centered in left half) - hidden until logged in -->
+  <div id="quickLinks" class="hidden" aria-hidden="true">
+    <h3>Quick Links</h3>
+    <ul id="quickLinksList"></ul>
+    <input type="text" id="newQuickLink" placeholder="Enter URL (https://...)">
+    <div style="display:flex; gap:8px;">
+      <button class="small-btn" onclick="addQuickLink()">Add</button>
+      <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
     </div>
   </div>
 
@@ -146,6 +160,7 @@ function useDefaultNow() { setPickedBgValue('default'); }
 if (currentUser) {
   showTodo();
   loadAllLists();
+  renderQuickLinks(); // show quick links if session exists
 }
 
 /* --------- Account functions --------- */
@@ -169,6 +184,7 @@ function createAccount() {
   loadAllLists();
   showTodo();
   renderLists();
+  renderQuickLinks();
 }
 
 function showLogin() {
@@ -189,6 +205,7 @@ function login() {
   loadAllLists();
   showTodo();
   renderLists();
+  renderQuickLinks();
 }
 
 /* --------- Show To-do --------- */
@@ -211,39 +228,70 @@ function showTodo() {
     </div>
   `;
 
-  renderQuickLinks();
+  renderQuickLinks(); // ensure links show when todo shown
 }
 
-/* --------- Quick Links --------- */
+/* --------- Quick Links (per-account) --------- */
 function renderQuickLinks() {
-    const quickLinksDiv = document.getElementById('quickLinks');
-    const listEl = document.getElementById('quickLinksList');
-    listEl.innerHTML = "";
+  const quickDiv = document.getElementById('quickLinks');
+  const listEl = document.getElementById('quickLinksList');
+  listEl.innerHTML = '';
 
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const userLinks = (users[currentUser] && users[currentUser].quickLinks) || [];
+  // hide if not logged in
+  if (!currentUser) {
+    quickDiv.classList.add('hidden');
+    quickDiv.setAttribute('aria-hidden','true');
+    return;
+  }
 
-    userLinks.forEach(link => {
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
-        listEl.appendChild(li);
-    });
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const links = (users[currentUser] && users[currentUser].quickLinks) || [];
 
-    quickLinksDiv.classList.toggle('hidden', !currentUser);
+  links.forEach((link, i) => {
+    const li = document.createElement('li');
+    // show short text if it's long
+    const display = link.length > 36 ? (link.slice(0,33) + '...') : link;
+    li.innerHTML = `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>
+      <button class="small-btn" onclick="removeQuickLink(${i})" title="Remove link">🗑</button>`;
+    listEl.appendChild(li);
+  });
+
+  // show the quick links container
+  quickDiv.classList.remove('hidden');
+  quickDiv.setAttribute('aria-hidden','false');
 }
 
 function addQuickLink() {
-    const urlInput = document.getElementById('newQuickLink');
-    const url = urlInput.value.trim();
-    if (!url) return;
+  const url = document.getElementById('newQuickLink').value.trim();
+  if (!url) { alert('Please enter a URL'); return; }
 
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
-    users[currentUser].quickLinks = users[currentUser].quickLinks || [];
-    users[currentUser].quickLinks.push(url);
-    localStorage.setItem('users', JSON.stringify(users));
+  // ensure user exists
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return alert('No user session');
 
-    urlInput.value = "";
-    renderQuickLinks();
+  users[currentUser].quickLinks = users[currentUser].quickLinks || [];
+  users[currentUser].quickLinks.push(url);
+  localStorage.setItem('users', JSON.stringify(users));
+
+  document.getElementById('newQuickLink').value = '';
+  renderQuickLinks();
+}
+
+function removeQuickLink(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
+  users[currentUser].quickLinks.splice(index, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
+}
+
+function clearQuickLinks() {
+  if (!confirm('Clear all quick links for this account?')) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].quickLinks = [];
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
 }
 
 /* --------- Background Picker --------- */
@@ -280,7 +328,7 @@ function logout() {
   document.getElementById('listsContainer').innerHTML = "";
   document.getElementById('tabsContainer').innerHTML = "";
   document.getElementById('todoHeader').innerHTML = "";
-  renderQuickLinks();
+  renderQuickLinks(); // hide quick links on logout
 }
 
 /* --------- Lists --------- */
