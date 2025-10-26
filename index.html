@@ -41,19 +41,19 @@
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
 
     /* Quick Links styling (added) */
-    #quickLinks {
-      position: fixed;
-      top: 50%;
-      left: 25%; /* centers horizontally in the left half */
-      transform: translate(-50%, -50%);
-      width: 260px;
-      background: rgba(0,0,0,0.32); /* semi-transparent as requested */
-      padding: 12px;
-      border-radius: 12px;
-      color: white;
-      text-align: left;
-      z-index: 9999;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+   #quickLinks {
+  position: fixed;
+  top: 60px; /* move down from top */
+  left: 40px; /* move in from left */
+  width: 260px;
+  background: rgba(0, 0, 0, 0.32); /* keep the semi-transparent look */
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+  text-align: left;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+
     }
     #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
     #quickLinks ul { list-style: disc; padding-left: 18px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
@@ -487,3 +487,4 @@ function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g
 </script>
 </body>
 </html>
+
