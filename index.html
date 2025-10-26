@@ -47,7 +47,7 @@
       left: 25%; /* centers horizontally in the left half */
       transform: translate(-50%, -50%);
       width: 260px;
-      background: rgba(0,0,0,0.32);
+      background: rgba(0,0,0,0.32); /* semi-transparent as requested */
       padding: 12px;
       border-radius: 12px;
       color: white;
@@ -55,12 +55,16 @@
       z-index: 9999;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
-    #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; }
+    #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
     #quickLinks ul { list-style: disc; padding-left: 18px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
     #quickLinks li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
-    #quickLinks a { color: #ffd; text-decoration: underline; max-width: 180px; word-break: break-word; }
-    #quickLinks input { width: 100%; border-radius: 8px; padding:8px; margin-bottom:6px; border:none; box-sizing: border-box; }
+    #quickLinks a { color: #ffd; text-decoration: underline; max-width: 160px; word-break: break-word; }
+    /* make the inputs fit inside and centered visually */
+    #quickLinks .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    #quickLinks input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
     #quickLinks .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
+    #quickLinks .row { display:flex; gap:6px; }
+    #quickLinks .row input { flex:1; }
   </style>
 </head>
 <body>
@@ -121,16 +125,20 @@
   <div id="quickLinks" class="hidden" aria-hidden="true">
     <h3>Quick Links</h3>
     <ul id="quickLinksList"></ul>
-    <input type="text" id="newQuickLink" placeholder="Enter URL (https://...)">
-    <div style="display:flex; gap:8px;">
-      <button class="small-btn" onclick="addQuickLink()">Add</button>
-      <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
+
+    <div class="inputs">
+      <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
+      <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
+      <div style="display:flex; gap:8px;">
+        <button class="small-btn" onclick="addQuickLink()">Add</button>
+        <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
+      </div>
     </div>
   </div>
 
 <script>
 /* --------- State --------- */
-/* currentUser now stores the user's unique id (we use password as id) */
+/* currentUser stores the user's unique id (we use password as id) */
 let currentUser = localStorage.getItem('currentUser'); // this will be password (unique id)
 let currentUserName = null; // display name (username)
 let allLists = [];
@@ -270,10 +278,13 @@ function renderQuickLinks() {
 
   links.forEach((link, i) => {
     const li = document.createElement('li');
-    // show short text if it's long
-    const display = link.length > 36 ? (link.slice(0,33) + '...') : link;
-    li.innerHTML = `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(display)}</a>
-      <button class="small-btn" onclick="removeQuickLink(${i})" title="Remove link">🗑</button>`;
+    // use link.name for display; if name missing fallback to URL
+    const nameDisplay = link.name ? (link.name.length > 36 ? (link.name.slice(0,33) + '...') : link.name) : (link.url.length > 36 ? (link.url.slice(0,33) + '...') : link.url);
+    li.innerHTML = `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(nameDisplay)}</a>
+      <div>
+        <button class="small-btn" onclick="editQuickLink(${i})" title="Edit link">✏️</button>
+        <button class="small-btn" onclick="removeQuickLink(${i})" title="Remove link">🗑</button>
+      </div>`;
     listEl.appendChild(li);
   });
 
@@ -283,19 +294,47 @@ function renderQuickLinks() {
 }
 
 function addQuickLink() {
-  const url = document.getElementById('newQuickLink').value.trim();
-  if (!url) { alert('Please enter a URL'); return; }
+  const name = document.getElementById('quickLinkName').value.trim();
+  let url = document.getElementById('quickLinkURL').value.trim();
+  if (!name || !url) { alert('Please enter both a name and a URL'); return; }
+
+  // normalize url: add https:// if missing
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url;
+  }
 
   // ensure user exists
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return alert('No user session');
 
   users[currentUser].quickLinks = users[currentUser].quickLinks || [];
-  users[currentUser].quickLinks.push(url);
+  users[currentUser].quickLinks.push({ name, url });
   localStorage.setItem('users', JSON.stringify(users));
 
-  document.getElementById('newQuickLink').value = '';
+  document.getElementById('quickLinkName').value = '';
+  document.getElementById('quickLinkURL').value = '';
   renderQuickLinks(); // saved immediately
+}
+
+function editQuickLink(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
+  const link = users[currentUser].quickLinks[index];
+  if (!link) return;
+
+  // prompt for new values (keeps current if blank)
+  const newName = prompt('Edit link name:', link.name || '') || link.name || '';
+  let newUrl = prompt('Edit link URL:', link.url || '') || link.url || '';
+
+  if (!newName || !newUrl) return alert('Name and URL cannot be empty');
+
+  if (!/^https?:\/\//i.test(newUrl)) {
+    newUrl = 'https://' + newUrl;
+  }
+
+  users[currentUser].quickLinks[index] = { name: newName.trim(), url: newUrl.trim() };
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
 }
 
 function removeQuickLink(index) {
@@ -448,4 +487,3 @@ function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g
 </script>
 </body>
 </html>
-
