@@ -42,18 +42,17 @@
 
     /* Quick Links styling (added) */
    #quickLinks {
-  position: fixed;
-  top: 60px; /* move down from top */
-  left: 40px; /* move in from left */
-  width: 260px;
-  background: rgba(0, 0, 0, 0.32); /* keep the semi-transparent look */
-  padding: 12px;
-  border-radius: 12px;
-  color: white;
-  text-align: left;
-  z-index: 9999;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-
+      position: fixed;
+      top: 60px; /* move down from top */
+      left: 40px; /* move in from left */
+      width: 260px;
+      background: rgba(0, 0, 0, 0.32); /* keep the semi-transparent look */
+      padding: 12px;
+      border-radius: 12px;
+      color: white;
+      text-align: left;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
     #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
     #quickLinks ul { list-style: disc; padding-left: 18px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
@@ -65,6 +64,37 @@
     #quickLinks .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
     #quickLinks .row { display:flex; gap:6px; }
     #quickLinks .row input { flex:1; }
+
+    /* Planner styling (mirrors Quick Links and sits on the right) */
+    #planner {
+      position: fixed;
+      top: 60px;
+      right: 40px; /* opposite of quick links */
+      width: 260px;
+      background: rgba(0, 0, 0, 0.32);
+      padding: 12px;
+      border-radius: 12px;
+      color: white;
+      text-align: left;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    #planner h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
+    #planner ul { list-style: disc; padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #planner li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    #planner .task-text { max-width: 140px; word-break: break-word; }
+    #planner .task-date { font-size: 12px; opacity: 0.85; margin-right:8px; }
+    #planner .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    #planner input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
+    #planner .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
+    #planner .row { display:flex; gap:6px; }
+    #planner .row input { flex:1; }
+
+    /* small responsive tweak so fixed panels don't overlap tiny screens */
+    @media (max-width: 900px) {
+      #quickLinks, #planner { position: static; width: calc(50% - 24px); margin: 12px; display:inline-block; vertical-align:top; }
+      body { padding: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -120,17 +150,6 @@
       <button onclick="logout()">Logout</button>
     </div>
   </div>
-  <!-- Planner Section -->
-<div id="planner" style="position: fixed; top: 60px; right: 420px; width: 300px; background: rgba(0,0,0,0.32); padding:12px; border-radius:12px; color:white; z-index:9999; max-height: 500px; overflow-y:auto;">
-  <h3>Planner 📅</h3>
-  <div id="tasksDisplay"></div>
-
-  <h4 style="margin-top:12px;">Add Task with Due Date</h4>
-  <input type="text" id="plannerTaskInput" placeholder="Task name">
-  <input type="date" id="plannerDueDate">
-  <button onclick="addPlannerTask()">Add</button>
-</div>
-
 
   <!-- Quick Links (centered in left half) - hidden until logged in -->
   <div id="quickLinks" class="hidden" aria-hidden="true">
@@ -143,6 +162,21 @@
       <div style="display:flex; gap:8px;">
         <button class="small-btn" onclick="addQuickLink()">Add</button>
         <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Planner (centered in right half) - hidden until logged in -->
+  <div id="planner" class="hidden" aria-hidden="true">
+    <h3>Planner</h3>
+    <ul id="plannerList"></ul>
+
+    <div class="inputs">
+      <input type="text" id="plannerTask" placeholder="Add a task...">
+      <input type="date" id="plannerDate">
+      <div style="display:flex; gap:8px;">
+        <button class="small-btn" onclick="addPlannerTask()">Add</button>
+        <button class="small-btn" onclick="clearPlanner()">Clear All</button>
       </div>
     </div>
   </div>
@@ -185,6 +219,7 @@ if (currentUser) {
   showTodo();
   loadAllLists();
   renderQuickLinks(); // show quick links if session exists
+  renderPlanner(); // show planner if session exists
 }
 
 /* --------- Account functions (password used as unique id) --------- */
@@ -206,7 +241,8 @@ function createAccount() {
     password: pass,
     lists: [{ name: 'My First List', tasks: [] }],
     background: pickedBackground,
-    quickLinks: []
+    quickLinks: [],
+    planner: [] // per-account planner tasks stored as array of {text, date}
   };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', pass);
@@ -216,6 +252,7 @@ function createAccount() {
   showTodo();
   renderLists();
   renderQuickLinks();
+  renderPlanner();
 }
 
 function showLogin() {
@@ -244,6 +281,7 @@ function login() {
   showTodo();
   renderLists();
   renderQuickLinks();
+  renderPlanner();
 }
 
 /* --------- Show To-do --------- */
@@ -269,6 +307,7 @@ function showTodo() {
   `;
 
   renderQuickLinks(); // ensure links show when todo shown
+  renderPlanner(); // ensure planner shows when todo shown
 }
 
 /* --------- Quick Links (per-account) --------- */
@@ -365,6 +404,102 @@ function clearQuickLinks() {
   renderQuickLinks();
 }
 
+/* --------- Planner (per-account) --------- */
+function renderPlanner() {
+  const plannerDiv = document.getElementById('planner');
+  const listEl = document.getElementById('plannerList');
+  listEl.innerHTML = '';
+
+  // hide if not logged in
+  if (!currentUser) {
+    plannerDiv.classList.add('hidden');
+    plannerDiv.setAttribute('aria-hidden','true');
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const tasks = (users[currentUser] && users[currentUser].planner) || [];
+
+  // sort by date if date exists, otherwise keep at end
+  tasks.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  tasks.forEach((task, i) => {
+    const li = document.createElement('li');
+
+    const taskText = `<span class="task-text">${escapeHtml(task.text)}</span>`;
+    const taskDate = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
+
+    li.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div>${taskText}</div>
+        <div style="opacity:0.85; font-size:12px;">${taskDate}</div>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
+        <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
+      </div>
+    `;
+    listEl.appendChild(li);
+  });
+
+  // show container
+  plannerDiv.classList.remove('hidden');
+  plannerDiv.setAttribute('aria-hidden','false');
+}
+
+function addPlannerTask() {
+  const textEl = document.getElementById('plannerTask');
+  const dateEl = document.getElementById('plannerDate');
+  const text = textEl.value.trim();
+  const date = dateEl.value || '';
+
+  if (!text) return alert('Enter a task first!');
+
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return alert('No user session');
+
+  users[currentUser].planner = users[currentUser].planner || [];
+  users[currentUser].planner.push({ text, date });
+  localStorage.setItem('users', JSON.stringify(users));
+  textEl.value = '';
+  dateEl.value = '';
+  renderPlanner();
+}
+
+function editPlannerTask(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].planner) return;
+  const task = users[currentUser].planner[index];
+  if (!task) return;
+  const newText = prompt('Edit task:', task.text || '') || task.text;
+  const newDate = prompt('Edit date (YYYY-MM-DD, leave empty for none):', task.date || '') || task.date || '';
+  users[currentUser].planner[index] = { text: newText.trim(), date: newDate.trim() };
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
+}
+
+function removePlannerTask(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].planner.splice(index, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
+}
+
+function clearPlanner() {
+  if (!confirm('Clear all planner tasks?')) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].planner = [];
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
+}
+
 /* --------- Background Picker --------- */
 function openBackgroundPicker() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
@@ -401,6 +536,7 @@ function logout() {
   document.getElementById('tabsContainer').innerHTML = "";
   document.getElementById('todoHeader').innerHTML = "";
   renderQuickLinks(); // hide quick links on logout
+  renderPlanner();   // hide planner on logout
 }
 
 /* --------- Lists --------- */
@@ -463,21 +599,25 @@ function renderActiveList() {
   const list = allLists[index];
   const listDiv = document.createElement('div');
   listDiv.innerHTML = `
- <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
-  <input type="text" id="newTask_${index}" placeholder="Add a task..." style="flex:1;">
-  <input type="date" id="newTaskDate_${index}">
-  <button onclick="addTask(${index})">Add</button>
-</div>
-
+    <h2 style="margin-bottom:6px">${list.name}</h2>
+    <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
+      <input type="text" id="newTask_${index}" placeholder="Add a task..." style="flex:1;">
+      <input type="date" id="newTaskDate_${index}">
+      <button onclick="addTask(${index})">Add</button>
+    </div>
+    <ul id="list_${index}"></ul>
   `;
   container.appendChild(listDiv);
 
   const ul = document.getElementById(`list_${index}`);
   list.tasks.forEach((task, tIdx) => {
     const li = document.createElement('li');
+    // show date if task has .dueDate stored (old tasks won't)
+    const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
     li.innerHTML = `
       <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
-      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}">
+      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
+      ${dateLabel}
       <button onclick="deleteTask(${tIdx})">🗑️</button>
     `;
     ul.appendChild(li);
@@ -488,59 +628,39 @@ function renderActiveList() {
 function createNewList() { allLists.push({ name: `List ${allLists.length+1}`, tasks: [] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
 function renameList(listIndex) { const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!=="") { allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
 function confirmDeleteList(listIndex) { if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
-function addTask(listIndex) { const input=document.getElementById(`newTask_${listIndex}`); const text=input.value.trim(); if(!text) return; allLists[listIndex].tasks.push({text,done:false}); input.value=""; saveAllLists(); renderLists(); }
+function addTask(listIndex) {
+  const input = document.getElementById(`newTask_${listIndex}`);
+  const dateInput = document.getElementById(`newTaskDate_${listIndex}`);
+  const text = input.value.trim();
+  const dueDate = dateInput ? dateInput.value : '';
+
+  if (!text) return;
+
+  // Add to the to-do list (keeps compatibility with previous shape)
+  allLists[listIndex].tasks.push({ text, done: false, dueDate: dueDate || undefined });
+  input.value = "";
+  if (dateInput) dateInput.value = "";
+
+  // Also add into per-account planner if user provided a due date OR always add simple task to planner (choose behavior)
+  // Here we will add to planner only if a dueDate was provided (keeps planner focused on dated items)
+  if (dueDate && currentUser) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].planner = users[currentUser].planner || [];
+    users[currentUser].planner.push({ text, date: dueDate });
+    localStorage.setItem('users', JSON.stringify(users));
+    renderPlanner();
+  }
+
+  saveAllLists();
+  renderLists();
+}
 function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
 function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
 
 function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  let plannerTasks = [];
-
-// Add a new task to the planner
-function addPlannerTask() {
-  const taskName = document.getElementById("plannerTaskInput").value.trim();
-  const dueDate = document.getElementById("plannerDueDate").value;
-
-  if (!taskName || !dueDate) {
-    alert("Enter both a task and a due date!");
-    return;
-  }
-
-  plannerTasks.push({ name: taskName, date: dueDate });
-  document.getElementById("plannerTaskInput").value = "";
-  document.getElementById("plannerDueDate").value = "";
-  renderPlannerTasks();
-}
-
-function addTask(listIndex) {
-  const input = document.getElementById(`newTask_${listIndex}`);
-  const dateInput = document.getElementById(`newTaskDate_${listIndex}`);
-  const text = input.value.trim();
-  const dueDate = dateInput.value;
-
-  if (!text) return;
-
-  // Add to the to-do list
-  allLists[listIndex].tasks.push({ text, done: false });
-
-  // Add to planner if due date is provided
-  if (dueDate) {
-    plannerTasks.push({ name: text, date: dueDate });
-    renderPlannerTasks();
-    dateInput.value = ""; // clear date input
-  }
-
-  input.value = "";
-  saveAllLists();
-  renderLists();
-}
-
-
 </script>
 </body>
 </html>
-
-
-
-
