@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Dynamic To-Do Tabs 😎</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff); }
 
@@ -40,59 +42,79 @@
 
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
 
-    /* Quick Links styling (added) */
-   #quickLinks {
-      position: fixed;
-      top: 60px; /* move down from top */
-      left: 40px; /* move in from left */
-      width: 260px;
-      background: rgba(0, 0, 0, 0.32); /* keep the semi-transparent look */
-      padding: 12px;
-      border-radius: 12px;
-      color: white;
-      text-align: left;
-      z-index: 9999;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    /* Top panels container - inline, side-by-side, pushes content down (no overlap) */
+    #topPanels {
+      display: flex;
+      gap: 20px;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: calc(100% - 80px); /* body padding 40 each side */
+      margin: 0 auto 18px auto;
+      box-sizing: border-box;
+      max-width: 1200px;
     }
-    #quickLinks h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
-    #quickLinks ul { list-style: disc; padding-left: 18px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
-    #quickLinks li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
-    #quickLinks a { color: #ffd; text-decoration: underline; max-width: 160px; word-break: break-word; }
-    /* make the inputs fit inside and centered visually */
-    #quickLinks .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
-    #quickLinks input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
-    #quickLinks .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
-    #quickLinks .row { display:flex; gap:6px; }
-    #quickLinks .row input { flex:1; }
 
-    /* Planner styling (mirrors Quick Links and sits on the right) */
-    #planner {
-      position: fixed;
-      top: 60px;
-      right: 40px; /* opposite of quick links */
-      width: 260px;
+    .panel {
+      width: 48%;
       background: rgba(0, 0, 0, 0.32);
-      padding: 12px;
       border-radius: 12px;
       color: white;
       text-align: left;
-      z-index: 9999;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      overflow: visible;
     }
-    #planner h3 { margin: 0 0 8px 0; font-size: 16px; text-align:center; }
-    #planner ul { list-style: disc; padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
-    #planner li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
-    #planner .task-text { max-width: 140px; word-break: break-word; }
-    #planner .task-date { font-size: 12px; opacity: 0.85; margin-right:8px; }
-    #planner .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
-    #planner input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
-    #planner .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
-    #planner .row { display:flex; gap:6px; }
-    #planner .row input { flex:1; }
 
-    /* small responsive tweak so fixed panels don't overlap tiny screens */
-    @media (max-width: 900px) {
-      #quickLinks, #planner { position: static; width: calc(50% - 24px); margin: 12px; display:inline-block; vertical-align:top; }
+    /* header bar that stays visible (click to toggle body) */
+    .panel-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 12px;
+      background: linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+      font-weight: 600;
+      gap:8px;
+    }
+    .panel-header .title { text-align:center; flex:1; font-size:16px; }
+    .chev { width:20px; height:20px; display:inline-block; transition: transform 220ms ease; }
+
+    /* panel body uses max-height animation for smooth slide */
+    .panel-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 320ms cubic-bezier(.25,.8,.25,1), padding 220ms ease;
+      padding: 0 12px;
+    }
+    .panel-body.open {
+      padding: 12px;
+    }
+
+    /* when header toggled, rotate arrow */
+    .open .chev { transform: rotate(180deg); }
+
+    /* Quick Links inner */
+    #quickLinksList { padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #quickLinksList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    #quickLinksList a { color: #ffd; text-decoration: underline; max-width: 160px; word-break: break-word; }
+
+    /* Planner inner */
+    #plannerList { padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #plannerList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    .task-text { max-width: 160px; word-break: break-word; display:block; }
+    .task-date { font-size: 12px; opacity: 0.85; margin-top: 6px; display:block; }
+
+    /* inputs inside panels */
+    .panel .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    .panel input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
+    .panel .row { display:flex; gap:6px; }
+    .panel .row .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
+
+    /* small responsive tweak so panels stack on narrow screens */
+    @media (max-width: 880px) {
+      #topPanels { flex-direction: column; gap: 12px; width: calc(100% - 40px); }
+      .panel { width: 100%; }
       body { padding: 20px; }
     }
   </style>
@@ -131,6 +153,51 @@
     </div>
   </div>
 
+  <!-- Top inline panels: Quick Links (left) + Planner (right) -->
+  <div id="topPanels" class="hidden" aria-hidden="true">
+    <!-- Quick Links panel -->
+    <div id="quickLinks" class="panel" aria-hidden="true">
+      <div class="panel-header" onclick="togglePanel('quickLinks')">
+        <div style="width:20px"></div>
+        <div class="title">Quick Links</div>
+        <div class="chev">▾</div>
+      </div>
+      <div id="quickLinksBody" class="panel-body" aria-hidden="true">
+        <ul id="quickLinksList"></ul>
+
+        <div class="inputs">
+          <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
+          <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
+          <div class="row">
+            <button class="small-btn" onclick="addQuickLink()">Add</button>
+            <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planner panel -->
+    <div id="planner" class="panel" aria-hidden="true">
+      <div class="panel-header" onclick="togglePanel('planner')">
+        <div style="width:20px"></div>
+        <div class="title">Planner</div>
+        <div class="chev">▾</div>
+      </div>
+      <div id="plannerBody" class="panel-body" aria-hidden="true">
+        <ul id="plannerList"></ul>
+
+        <div class="inputs">
+          <input type="text" id="plannerTask" placeholder="Add a task...">
+          <input type="date" id="plannerDate">
+          <div class="row">
+            <button class="small-btn" onclick="addPlannerTask()">Add</button>
+            <button class="small-btn" onclick="clearPlanner()">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- To-do lists -->
   <div id="todo" class="hidden">
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
@@ -151,36 +218,6 @@
     </div>
   </div>
 
-  <!-- Quick Links (centered in left half) - hidden until logged in -->
-  <div id="quickLinks" class="hidden" aria-hidden="true">
-    <h3>Quick Links</h3>
-    <ul id="quickLinksList"></ul>
-
-    <div class="inputs">
-      <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
-      <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
-      <div style="display:flex; gap:8px;">
-        <button class="small-btn" onclick="addQuickLink()">Add</button>
-        <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Planner (centered in right half) - hidden until logged in -->
-  <div id="planner" class="hidden" aria-hidden="true">
-    <h3>Planner</h3>
-    <ul id="plannerList"></ul>
-
-    <div class="inputs">
-      <input type="text" id="plannerTask" placeholder="Add a task...">
-      <input type="date" id="plannerDate">
-      <div style="display:flex; gap:8px;">
-        <button class="small-btn" onclick="addPlannerTask()">Add</button>
-        <button class="small-btn" onclick="clearPlanner()">Clear All</button>
-      </div>
-    </div>
-  </div>
-
 <script>
 /* --------- State --------- */
 /* currentUser stores the user's unique id (we use password as id) */
@@ -189,6 +226,9 @@ let currentUserName = null; // display name (username)
 let allLists = [];
 let activeListIndex = 0;
 let pickedBackground = 'default';
+
+/* --------- util escape --------- */
+function escapeHtml(str) { return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* --------- Gradient selection --------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
@@ -211,6 +251,35 @@ function applyBackgroundPreview(val) {
 gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
 function useDefaultNow() { setPickedBgValue('default'); }
 
+/* --------- Panel toggle logic (slide down) --------- */
+function togglePanel(panelId) {
+  const panel = document.getElementById(panelId);
+  const body = document.getElementById(panelId + 'Body');
+  const header = panel.querySelector('.panel-header');
+  const chevron = header.querySelector('.chev');
+  const open = body.classList.contains('open');
+
+  if (open) {
+    // close
+    body.style.maxHeight = body.scrollHeight + 'px'; // set current height to enable transition
+    requestAnimationFrame(() => {
+      body.style.maxHeight = '0px';
+      body.classList.remove('open');
+      panel.classList.remove('open');
+      body.setAttribute('aria-hidden', 'true');
+    });
+  } else {
+    // open
+    body.classList.add('open');
+    panel.classList.add('open');
+    body.setAttribute('aria-hidden', 'false');
+    // set to measured scrollHeight to animate
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // after transition remove explicit max-height to allow internal resizing if needed
+    setTimeout(() => { if (body.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; }, 330);
+  }
+}
+
 /* --------- Load session (if any) --------- */
 if (currentUser) {
   // get username for display
@@ -218,8 +287,8 @@ if (currentUser) {
   if (usersTemp[currentUser]) currentUserName = usersTemp[currentUser].username || null;
   showTodo();
   loadAllLists();
-  renderQuickLinks(); // show quick links if session exists
-  renderPlanner(); // show planner if session exists
+  renderQuickLinks();
+  renderPlanner();
 }
 
 /* --------- Account functions (password used as unique id) --------- */
@@ -296,30 +365,34 @@ function showTodo() {
   document.getElementById('login').classList.add('hidden');
   document.getElementById('todo').classList.remove('hidden');
 
+  // show the top panels container (closed by default)
+  const top = document.getElementById('topPanels');
+  top.classList.remove('hidden');
+  top.setAttribute('aria-hidden','false');
+
   // display username (not password)
   const displayName = currentUserName || (users[currentUser] && users[currentUser].username) || currentUser;
   document.getElementById('todoHeader').innerHTML = `
-    <h1>Welcome, ${displayName}!</h1>
+    <h1>Welcome, ${escapeHtml(displayName)}!</h1>
     <div style="margin-top:8px">
       <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
       <button class="control-small" onclick="openBackgroundPicker()">Change background</button>
     </div>
   `;
-
-  renderQuickLinks(); // ensure links show when todo shown
-  renderPlanner(); // ensure planner shows when todo shown
 }
 
 /* --------- Quick Links (per-account) --------- */
 function renderQuickLinks() {
+  const top = document.getElementById('topPanels');
   const quickDiv = document.getElementById('quickLinks');
   const listEl = document.getElementById('quickLinksList');
   listEl.innerHTML = '';
 
-  // hide if not logged in
+  // hide top area if not logged
   if (!currentUser) {
-    quickDiv.classList.add('hidden');
     quickDiv.setAttribute('aria-hidden','true');
+    top.classList.add('hidden');
+    top.setAttribute('aria-hidden','true');
     return;
   }
 
@@ -328,9 +401,8 @@ function renderQuickLinks() {
 
   links.forEach((link, i) => {
     const li = document.createElement('li');
-    // use link.name for display; if name missing fallback to URL
     const nameDisplay = link.name ? (link.name.length > 36 ? (link.name.slice(0,33) + '...') : link.name) : (link.url.length > 36 ? (link.url.slice(0,33) + '...') : link.url);
-    li.innerHTML = `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(nameDisplay)}</a>
+    li.innerHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(nameDisplay)}</a><span style="font-size:12px; opacity:0.9;">${escapeHtml(link.url)}</span></div>
       <div>
         <button class="small-btn" onclick="editQuickLink(${i})" title="Edit link">✏️</button>
         <button class="small-btn" onclick="removeQuickLink(${i})" title="Remove link">🗑</button>
@@ -338,9 +410,9 @@ function renderQuickLinks() {
     listEl.appendChild(li);
   });
 
-  // show the quick links container
-  quickDiv.classList.remove('hidden');
-  quickDiv.setAttribute('aria-hidden','false');
+  // ensure top visible
+  document.getElementById('topPanels').classList.remove('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','false');
 }
 
 function addQuickLink() {
@@ -348,12 +420,10 @@ function addQuickLink() {
   let url = document.getElementById('quickLinkURL').value.trim();
   if (!name || !url) { alert('Please enter both a name and a URL'); return; }
 
-  // normalize url: add https:// if missing
   if (!/^https?:\/\//i.test(url)) {
     url = 'https://' + url;
   }
 
-  // ensure user exists
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return alert('No user session');
 
@@ -363,7 +433,7 @@ function addQuickLink() {
 
   document.getElementById('quickLinkName').value = '';
   document.getElementById('quickLinkURL').value = '';
-  renderQuickLinks(); // saved immediately
+  renderQuickLinks();
 }
 
 function editQuickLink(index) {
@@ -371,17 +441,10 @@ function editQuickLink(index) {
   if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
   const link = users[currentUser].quickLinks[index];
   if (!link) return;
-
-  // prompt for new values (keeps current if blank)
   const newName = prompt('Edit link name:', link.name || '') || link.name || '';
   let newUrl = prompt('Edit link URL:', link.url || '') || link.url || '';
-
   if (!newName || !newUrl) return alert('Name and URL cannot be empty');
-
-  if (!/^https?:\/\//i.test(newUrl)) {
-    newUrl = 'https://' + newUrl;
-  }
-
+  if (!/^https?:\/\//i.test(newUrl)) newUrl = 'https://' + newUrl;
   users[currentUser].quickLinks[index] = { name: newName.trim(), url: newUrl.trim() };
   localStorage.setItem('users', JSON.stringify(users));
   renderQuickLinks();
@@ -406,21 +469,23 @@ function clearQuickLinks() {
 
 /* --------- Planner (per-account) --------- */
 function renderPlanner() {
+  const top = document.getElementById('topPanels');
   const plannerDiv = document.getElementById('planner');
   const listEl = document.getElementById('plannerList');
   listEl.innerHTML = '';
 
-  // hide if not logged in
+  // hide top area if not logged
   if (!currentUser) {
-    plannerDiv.classList.add('hidden');
     plannerDiv.setAttribute('aria-hidden','true');
+    top.classList.add('hidden');
+    top.setAttribute('aria-hidden','true');
     return;
   }
 
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const tasks = (users[currentUser] && users[currentUser].planner) || [];
 
-  // sort by date if date exists, otherwise keep at end
+  // sort by date if present
   tasks.sort((a, b) => {
     if (!a.date && !b.date) return 0;
     if (!a.date) return 1;
@@ -430,26 +495,18 @@ function renderPlanner() {
 
   tasks.forEach((task, i) => {
     const li = document.createElement('li');
-
-    const taskText = `<span class="task-text">${escapeHtml(task.text)}</span>`;
-    const taskDate = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
-
-    li.innerHTML = `
-      <div style="display:flex; flex-direction:column; gap:4px;">
-        <div>${taskText}</div>
-        <div style="opacity:0.85; font-size:12px;">${taskDate}</div>
-      </div>
+    const textHtml = `<span class="task-text">${escapeHtml(task.text)}</span>`;
+    const dateHtml = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
+    li.innerHTML = `<div style="display:flex; flex-direction:column; gap:6px;">${textHtml}${dateHtml}</div>
       <div style="display:flex; gap:6px; align-items:center;">
         <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
         <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
-      </div>
-    `;
+      </div>`;
     listEl.appendChild(li);
   });
 
-  // show container
-  plannerDiv.classList.remove('hidden');
-  plannerDiv.setAttribute('aria-hidden','false');
+  document.getElementById('topPanels').classList.remove('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','false');
 }
 
 function addPlannerTask() {
@@ -535,8 +592,8 @@ function logout() {
   document.getElementById('listsContainer').innerHTML = "";
   document.getElementById('tabsContainer').innerHTML = "";
   document.getElementById('todoHeader').innerHTML = "";
-  renderQuickLinks(); // hide quick links on logout
-  renderPlanner();   // hide planner on logout
+  document.getElementById('topPanels').classList.add('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','true');
 }
 
 /* --------- Lists --------- */
@@ -599,7 +656,7 @@ function renderActiveList() {
   const list = allLists[index];
   const listDiv = document.createElement('div');
   listDiv.innerHTML = `
-    <h2 style="margin-bottom:6px">${list.name}</h2>
+    <h2 style="margin-bottom:6px">${escapeHtml(list.name)}</h2>
     <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
       <input type="text" id="newTask_${index}" placeholder="Add a task..." style="flex:1;">
       <input type="date" id="newTaskDate_${index}">
@@ -612,7 +669,6 @@ function renderActiveList() {
   const ul = document.getElementById(`list_${index}`);
   list.tasks.forEach((task, tIdx) => {
     const li = document.createElement('li');
-    // show date if task has .dueDate stored (old tasks won't)
     const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
     li.innerHTML = `
       <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
@@ -641,8 +697,7 @@ function addTask(listIndex) {
   input.value = "";
   if (dateInput) dateInput.value = "";
 
-  // Also add into per-account planner if user provided a due date OR always add simple task to planner (choose behavior)
-  // Here we will add to planner only if a dueDate was provided (keeps planner focused on dated items)
+  // If a due date was provided, add to planner (dated items)
   if (dueDate && currentUser) {
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     users[currentUser] = users[currentUser] || {};
@@ -658,8 +713,6 @@ function addTask(listIndex) {
 function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
 function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
-
-function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 </script>
 </body>
