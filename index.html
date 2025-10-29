@@ -121,7 +121,7 @@
     </div>
   </div>
   <!-- Planner Section -->
-<div id="planner" style="position: fixed; top: 60px; left: 320px; width: 300px; background: rgba(0,0,0,0.32); padding:12px; border-radius:12px; color:white; z-index:9999; max-height: 500px; overflow-y:auto;">
+<div id="planner" style="position: fixed; top: 60px; right: 320px; width: 300px; background: rgba(0,0,0,0.32); padding:12px; border-radius:12px; color:white; z-index:9999; max-height: 500px; overflow-y:auto;">
   <h3>Planner 📅</h3>
   <div id="tasksDisplay"></div>
 
@@ -463,12 +463,12 @@ function renderActiveList() {
   const list = allLists[index];
   const listDiv = document.createElement('div');
   listDiv.innerHTML = `
-    <h2 style="margin-bottom:6px">${list.name}</h2>
-    <div style="margin-bottom:8px">
-      <input type="text" id="newTask_${index}" placeholder="Add a task...">
-      <button onclick="addTask(${index})">Add</button>
-    </div>
-    <ul id="list_${index}"></ul>
+ <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
+  <input type="text" id="newTask_${index}" placeholder="Add a task..." style="flex:1;">
+  <input type="date" id="newTaskDate_${index}">
+  <button onclick="addTask(${index})">Add</button>
+</div>
+
   `;
   container.appendChild(listDiv);
 
@@ -513,24 +513,33 @@ function addPlannerTask() {
   renderPlannerTasks();
 }
 
-// Display tasks in the planner, sorted by date
-function renderPlannerTasks() {
-  const display = document.getElementById("tasksDisplay");
-  display.innerHTML = "";
+function addTask(listIndex) {
+  const input = document.getElementById(`newTask_${listIndex}`);
+  const dateInput = document.getElementById(`newTaskDate_${listIndex}`);
+  const text = input.value.trim();
+  const dueDate = dateInput.value;
 
-  plannerTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!text) return;
 
-  plannerTasks.forEach(task => {
-    const div = document.createElement("div");
-    div.style.borderBottom = "1px solid white";
-    div.style.padding = "4px 0";
-    div.innerHTML = `<strong>${task.date}</strong>: ${escapeHtml(task.name)}`;
-    display.appendChild(div);
-  });
+  // Add to the to-do list
+  allLists[listIndex].tasks.push({ text, done: false });
+
+  // Add to planner if due date is provided
+  if (dueDate) {
+    plannerTasks.push({ name: text, date: dueDate });
+    renderPlannerTasks();
+    dateInput.value = ""; // clear date input
+  }
+
+  input.value = "";
+  saveAllLists();
+  renderLists();
 }
+
 
 </script>
 </body>
 </html>
+
 
 
