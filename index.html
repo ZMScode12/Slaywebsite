@@ -120,6 +120,17 @@
       <button onclick="logout()">Logout</button>
     </div>
   </div>
+  <!-- Planner Section -->
+<div id="planner" style="position: fixed; top: 60px; left: 320px; width: 300px; background: rgba(0,0,0,0.32); padding:12px; border-radius:12px; color:white; z-index:9999; max-height: 500px; overflow-y:auto;">
+  <h3>Planner 📅</h3>
+  <div id="tasksDisplay"></div>
+
+  <h4 style="margin-top:12px;">Add Task with Due Date</h4>
+  <input type="text" id="plannerTaskInput" placeholder="Task name">
+  <input type="date" id="plannerDueDate">
+  <button onclick="addPlannerTask()">Add</button>
+</div>
+
 
   <!-- Quick Links (centered in left half) - hidden until logged in -->
   <div id="quickLinks" class="hidden" aria-hidden="true">
@@ -484,7 +495,42 @@ function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskInde
 
 function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+  let plannerTasks = [];
+
+// Add a new task to the planner
+function addPlannerTask() {
+  const taskName = document.getElementById("plannerTaskInput").value.trim();
+  const dueDate = document.getElementById("plannerDueDate").value;
+
+  if (!taskName || !dueDate) {
+    alert("Enter both a task and a due date!");
+    return;
+  }
+
+  plannerTasks.push({ name: taskName, date: dueDate });
+  document.getElementById("plannerTaskInput").value = "";
+  document.getElementById("plannerDueDate").value = "";
+  renderPlannerTasks();
+}
+
+// Display tasks in the planner, sorted by date
+function renderPlannerTasks() {
+  const display = document.getElementById("tasksDisplay");
+  display.innerHTML = "";
+
+  plannerTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  plannerTasks.forEach(task => {
+    const div = document.createElement("div");
+    div.style.borderBottom = "1px solid white";
+    div.style.padding = "4px 0";
+    div.innerHTML = `<strong>${task.date}</strong>: ${escapeHtml(task.name)}`;
+    display.appendChild(div);
+  });
+}
+
 </script>
 </body>
 </html>
+
 
