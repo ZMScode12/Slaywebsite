@@ -150,6 +150,9 @@
     <div style="margin-top:8px">
       <button onclick="login()">Log In</button>
       <button class="control-small" onclick="showSignup()">Sign up</button>
+
+
+
     </div>
   </div>
 
@@ -286,6 +289,7 @@ if (currentUser) {
   const usersTemp = JSON.parse(localStorage.getItem('users') || '{}');
   if (usersTemp[currentUser]) currentUserName = usersTemp[currentUser].username || null;
   showTodo();
+  checkTopPanelsVisibility();
   loadAllLists();
   renderQuickLinks();
   renderPlanner();
@@ -318,6 +322,7 @@ function createAccount() {
   currentUser = pass;
   currentUserName = user;
   loadAllLists();
+  checkTopPanelsVisibility();
   showTodo();
   renderLists();
   renderQuickLinks();
@@ -347,6 +352,7 @@ function login() {
   currentUser = pass;
   currentUserName = users[pass].username || null;
   loadAllLists();
+  checkTopPanelsVisibility();
   showTodo();
   renderLists();
   renderQuickLinks();
@@ -735,9 +741,35 @@ function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskInde
     top.setAttribute('aria-hidden', 'false');
   }
 }
+  function checkTopPanelsVisibility() {
+  const topPanels = document.getElementById('topPanels');
+  const quickLinks = document.getElementById('quickLinks');
+  const planner = document.getElementById('planner');
+
+  if (!currentUser) {
+    // hide all
+    topPanels.classList.add('hidden');
+    quickLinks.classList.add('hidden');
+    planner.classList.add('hidden');
+  } else {
+    // show them again if logged in
+    topPanels.classList.remove('hidden');
+    quickLinks.classList.remove('hidden');
+    planner.classList.remove('hidden');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('currentUser');
+  currentUser = null;
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+  checkTopPanelsVisibility();
+}
 
 
 </script>
 </body>
 </html>
+
 
