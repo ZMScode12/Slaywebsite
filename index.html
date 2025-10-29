@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Dynamic To-Do Tabs 😎</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { --default-moving: linear-gradient(135deg, #5b00ff, #ff0066, #00f2ff); }
 
@@ -40,43 +42,81 @@
 
     .control-small { padding:6px 8px; font-size:14px; border-radius:8px; }
 
-    /* Quick Links + Planner container */
-    .side-panel {
-      position: fixed;
-      top: 60px;
-      width: 260px;
-      max-height: 70%;
-      background: rgba(0,0,0,0.32);
-      padding: 12px;
+    /* Top panels container - inline, side-by-side, pushes content down (no overlap) */
+    #topPanels {
+      display: flex;
+      gap: 20px;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: calc(100% - 80px); /* body padding 40 each side */
+      margin: 0 auto 18px auto;
+      box-sizing: border-box;
+      max-width: 1200px;
+    }
+
+    .panel {
+      width: 48%;
+      background: rgba(0, 0, 0, 0.32);
       border-radius: 12px;
       color: white;
       text-align: left;
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      overflow-y: auto;
-      z-index: 9999;
-      transition: transform 0.3s ease;
+      overflow: visible;
     }
 
-    .side-panel.hidden { display: none; }
-
-    #quickLinks { left: 40px; transform: translateX(-100%); }
-    #planner { right: 40px; transform: translateX(100%); }
-
-    .side-panel.open { transform: translateX(0); }
-
+    /* header bar that stays visible (click to toggle body) */
     .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
       cursor: pointer;
+      user-select: none;
+      border-radius: 12px;
+      background: linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+      font-weight: 600;
+      gap:8px;
+    }
+    .panel-header .title { text-align:center; flex:1; font-size:16px; }
+    .chev { width:20px; height:20px; display:inline-block; transition: transform 220ms ease; }
+
+    /* panel body uses max-height animation for smooth slide */
+    .panel-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 320ms cubic-bezier(.25,.8,.25,1), padding 220ms ease;
+      padding: 0 12px;
+    }
+    .panel-body.open {
+      padding: 12px;
     }
 
-    .panel-header h3 { margin: 0; font-size:16px; }
-    .panel-content { margin-top: 6px; display: none; flex-direction: column; gap:6px; }
-    .panel-content input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing:border-box; }
-    .panel-content .row { display:flex; gap:6px; }
-    .panel-content .row input { flex:1; }
+    /* when header toggled, rotate arrow */
+    .open .chev { transform: rotate(180deg); }
 
+    /* Quick Links inner */
+    #quickLinksList { padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #quickLinksList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    #quickLinksList a { color: #ffd; text-decoration: underline; max-width: 160px; word-break: break-word; }
+
+    /* Planner inner */
+    #plannerList { padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
+    #plannerList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
+    .task-text { max-width: 160px; word-break: break-word; display:block; }
+    .task-date { font-size: 12px; opacity: 0.85; margin-top: 6px; display:block; }
+
+    /* inputs inside panels */
+    .panel .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    .panel input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
+    .panel .row { display:flex; gap:6px; }
+    .panel .row .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
+
+    /* small responsive tweak so panels stack on narrow screens */
+    @media (max-width: 880px) {
+      #topPanels { flex-direction: column; gap: 12px; width: calc(100% - 40px); }
+      .panel { width: 100%; }
+      body { padding: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -113,6 +153,51 @@
     </div>
   </div>
 
+  <!-- Top inline panels: Quick Links (left) + Planner (right) -->
+  <div id="topPanels" class="hidden" aria-hidden="true">
+    <!-- Quick Links panel -->
+    <div id="quickLinks" class="panel" aria-hidden="true">
+      <div class="panel-header" onclick="togglePanel('quickLinks')">
+        <div style="width:20px"></div>
+        <div class="title">Quick Links</div>
+        <div class="chev">▾</div>
+      </div>
+      <div id="quickLinksBody" class="panel-body" aria-hidden="true">
+        <ul id="quickLinksList"></ul>
+
+        <div class="inputs">
+          <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
+          <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
+          <div class="row">
+            <button class="small-btn" onclick="addQuickLink()">Add</button>
+            <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planner panel -->
+    <div id="planner" class="panel" aria-hidden="true">
+      <div class="panel-header" onclick="togglePanel('planner')">
+        <div style="width:20px"></div>
+        <div class="title">Planner</div>
+        <div class="chev">▾</div>
+      </div>
+      <div id="plannerBody" class="panel-body" aria-hidden="true">
+        <ul id="plannerList"></ul>
+
+        <div class="inputs">
+          <input type="text" id="plannerTask" placeholder="Add a task...">
+          <input type="date" id="plannerDate">
+          <div class="row">
+            <button class="small-btn" onclick="addPlannerTask()">Add</button>
+            <button class="small-btn" onclick="clearPlanner()">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- To-do lists -->
   <div id="todo" class="hidden">
     <div id="todoHeader"></div> <!-- Dynamic welcome + New List -->
@@ -133,45 +218,17 @@
     </div>
   </div>
 
-  <!-- Quick Links panel -->
-  <div id="quickLinks" class="side-panel hidden" aria-hidden="true">
-    <div class="panel-header" onclick="togglePanel('quickLinks')">
-      <h3>Quick Links ⬇️</h3>
-    </div>
-    <div class="panel-content" id="quickLinksContent">
-      <ul id="quickLinksList"></ul>
-      <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
-      <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
-      <div class="row">
-        <button class="small-btn" onclick="addQuickLink()">Add</button>
-        <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Planner panel -->
-  <div id="planner" class="side-panel hidden" aria-hidden="true">
-    <div class="panel-header" onclick="togglePanel('planner')">
-      <h3>Planner ⬇️</h3>
-    </div>
-    <div class="panel-content" id="plannerContent">
-      <ul id="plannerList"></ul>
-      <input type="text" id="plannerTask" placeholder="Add planner task">
-      <div class="row">
-        <button class="small-btn" onclick="addPlannerTask()">Add</button>
-        <button class="small-btn" onclick="clearPlanner()">Clear All</button>
-      </div>
-    </div>
-  </div>
-
 <script>
 /* --------- State --------- */
-let currentUser = localStorage.getItem('currentUser'); 
-let currentUserName = null; 
+/* currentUser stores the user's unique id (we use password as id) */
+let currentUser = localStorage.getItem('currentUser'); // this will be password (unique id)
+let currentUserName = null; // display name (username)
 let allLists = [];
 let activeListIndex = 0;
 let pickedBackground = 'default';
-let plannerTasks = [];
+
+/* --------- util escape --------- */
+function escapeHtml(str) { return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* --------- Gradient selection --------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
@@ -194,32 +251,59 @@ function applyBackgroundPreview(val) {
 gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
 function useDefaultNow() { setPickedBgValue('default'); }
 
-/* --------- Panels --------- */
+/* --------- Panel toggle logic (slide down) --------- */
 function togglePanel(panelId) {
   const panel = document.getElementById(panelId);
-  const content = panel.querySelector('.panel-content');
-  const open = content.style.display === 'flex';
-  content.style.display = open ? 'none' : 'flex';
+  const body = document.getElementById(panelId + 'Body');
+  const header = panel.querySelector('.panel-header');
+  const chevron = header.querySelector('.chev');
+  const open = body.classList.contains('open');
+
+  if (open) {
+    // close
+    body.style.maxHeight = body.scrollHeight + 'px'; // set current height to enable transition
+    requestAnimationFrame(() => {
+      body.style.maxHeight = '0px';
+      body.classList.remove('open');
+      panel.classList.remove('open');
+      body.setAttribute('aria-hidden', 'true');
+    });
+  } else {
+    // open
+    body.classList.add('open');
+    panel.classList.add('open');
+    body.setAttribute('aria-hidden', 'false');
+    // set to measured scrollHeight to animate
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // after transition remove explicit max-height to allow internal resizing if needed
+    setTimeout(() => { if (body.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; }, 330);
+  }
 }
 
 /* --------- Load session (if any) --------- */
 if (currentUser) {
+  // get username for display
   const usersTemp = JSON.parse(localStorage.getItem('users') || '{}');
   if (usersTemp[currentUser]) currentUserName = usersTemp[currentUser].username || null;
   showTodo();
   loadAllLists();
   renderQuickLinks();
-  loadPlanner();
+  renderPlanner();
 }
 
-/* --------- Account functions --------- */
+/* --------- Account functions (password used as unique id) --------- */
 function createAccount() {
   const user = document.getElementById('username').value.trim();
   const pass = document.getElementById('password').value.trim();
   if (!user || !pass) { alert('Please fill both username and password'); return; }
 
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (users[pass]) { alert('That password is already in use. Please pick a different password.'); return; }
+
+  // Use password as the internal unique id. Enforce unique passwords.
+  if (users[pass]) {
+    alert('That password is already in use. Please pick a different password.');
+    return;
+  }
 
   users[pass] = {
     username: user,
@@ -227,7 +311,7 @@ function createAccount() {
     lists: [{ name: 'My First List', tasks: [] }],
     background: pickedBackground,
     quickLinks: [],
-    planner: []
+    planner: [] // per-account planner tasks stored as array of {text, date}
   };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', pass);
@@ -237,14 +321,23 @@ function createAccount() {
   showTodo();
   renderLists();
   renderQuickLinks();
-  loadPlanner();
+  renderPlanner();
 }
 
+function showLogin() {
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+}
+function showSignup() {
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+}
 function login() {
   const userInput = document.getElementById('loginUsername').value.trim();
   const pass = document.getElementById('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
 
+  // We identify accounts by password (unique). Ensure a matching account exists and username matches what user typed.
   if (!users[pass] || users[pass].username !== userInput) {
     alert('Invalid username or password');
     return;
@@ -257,36 +350,49 @@ function login() {
   showTodo();
   renderLists();
   renderQuickLinks();
-  loadPlanner();
+  renderPlanner();
 }
 
-function logout() {
-  saveAllLists();
-  savePlanner();
-  localStorage.removeItem('currentUser');
-  currentUser = null;
-  currentUserName = null;
-  allLists = [];
-  activeListIndex = 0;
-  plannerTasks = [];
-  setPickedBgValue('default');
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('listsContainer').innerHTML = "";
-  document.getElementById('tabsContainer').innerHTML = "";
-  document.getElementById('todoHeader').innerHTML = "";
-  renderQuickLinks();
-  loadPlanner();
+/* --------- Show To-do --------- */
+function showTodo() {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+
+  const user = users[currentUser];
+  applyBackgroundPreview(user.background || 'default');
+
+  document.getElementById('signup').classList.add('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('todo').classList.remove('hidden');
+
+  // show the top panels container (closed by default)
+  const top = document.getElementById('topPanels');
+  top.classList.remove('hidden');
+  top.setAttribute('aria-hidden','false');
+
+  // display username (not password)
+  const displayName = currentUserName || (users[currentUser] && users[currentUser].username) || currentUser;
+  document.getElementById('todoHeader').innerHTML = `
+    <h1>Welcome, ${escapeHtml(displayName)}!</h1>
+    <div style="margin-top:8px">
+      <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
+      <button class="control-small" onclick="openBackgroundPicker()">Change background</button>
+    </div>
+  `;
 }
 
-/* --------- Quick Links --------- */
+/* --------- Quick Links (per-account) --------- */
 function renderQuickLinks() {
+  const top = document.getElementById('topPanels');
   const quickDiv = document.getElementById('quickLinks');
   const listEl = document.getElementById('quickLinksList');
   listEl.innerHTML = '';
 
+  // hide top area if not logged
   if (!currentUser) {
-    quickDiv.classList.add('hidden');
     quickDiv.setAttribute('aria-hidden','true');
+    top.classList.add('hidden');
+    top.setAttribute('aria-hidden','true');
     return;
   }
 
@@ -296,7 +402,7 @@ function renderQuickLinks() {
   links.forEach((link, i) => {
     const li = document.createElement('li');
     const nameDisplay = link.name ? (link.name.length > 36 ? (link.name.slice(0,33) + '...') : link.name) : (link.url.length > 36 ? (link.url.slice(0,33) + '...') : link.url);
-    li.innerHTML = `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(nameDisplay)}</a>
+    li.innerHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(nameDisplay)}</a><span style="font-size:12px; opacity:0.9;">${escapeHtml(link.url)}</span></div>
       <div>
         <button class="small-btn" onclick="editQuickLink(${i})" title="Edit link">✏️</button>
         <button class="small-btn" onclick="removeQuickLink(${i})" title="Remove link">🗑</button>
@@ -304,63 +410,190 @@ function renderQuickLinks() {
     listEl.appendChild(li);
   });
 
-  quickDiv.classList.remove('hidden');
-  quickDiv.setAttribute('aria-hidden','false');
+  // ensure top visible
+  document.getElementById('topPanels').classList.remove('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','false');
 }
 
-/* --------- Planner --------- */
-function loadPlanner() {
-  const plannerDiv = document.getElementById('planner');
-  const ul = document.getElementById('plannerList');
-  ul.innerHTML = '';
+function addQuickLink() {
+  const name = document.getElementById('quickLinkName').value.trim();
+  let url = document.getElementById('quickLinkURL').value.trim();
+  if (!name || !url) { alert('Please enter both a name and a URL'); return; }
 
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url;
+  }
+
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return alert('No user session');
+
+  users[currentUser].quickLinks = users[currentUser].quickLinks || [];
+  users[currentUser].quickLinks.push({ name, url });
+  localStorage.setItem('users', JSON.stringify(users));
+
+  document.getElementById('quickLinkName').value = '';
+  document.getElementById('quickLinkURL').value = '';
+  renderQuickLinks();
+}
+
+function editQuickLink(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
+  const link = users[currentUser].quickLinks[index];
+  if (!link) return;
+  const newName = prompt('Edit link name:', link.name || '') || link.name || '';
+  let newUrl = prompt('Edit link URL:', link.url || '') || link.url || '';
+  if (!newName || !newUrl) return alert('Name and URL cannot be empty');
+  if (!/^https?:\/\//i.test(newUrl)) newUrl = 'https://' + newUrl;
+  users[currentUser].quickLinks[index] = { name: newName.trim(), url: newUrl.trim() };
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
+}
+
+function removeQuickLink(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
+  users[currentUser].quickLinks.splice(index, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
+}
+
+function clearQuickLinks() {
+  if (!confirm('Clear all quick links for this account?')) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].quickLinks = [];
+  localStorage.setItem('users', JSON.stringify(users));
+  renderQuickLinks();
+}
+
+/* --------- Planner (per-account) --------- */
+function renderPlanner() {
+  const top = document.getElementById('topPanels');
+  const plannerDiv = document.getElementById('planner');
+  const listEl = document.getElementById('plannerList');
+  listEl.innerHTML = '';
+
+  // hide top area if not logged
   if (!currentUser) {
-    plannerDiv.classList.add('hidden');
+    plannerDiv.setAttribute('aria-hidden','true');
+    top.classList.add('hidden');
+    top.setAttribute('aria-hidden','true');
     return;
   }
 
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  plannerTasks = (users[currentUser] && users[currentUser].planner) || [];
+  const tasks = (users[currentUser] && users[currentUser].planner) || [];
 
-  plannerTasks.forEach((task, i) => {
-    const li = document.createElement('li');
-    li.innerHTML = `${escapeHtml(task.text)}
-      <button class="small-btn" onclick="removePlannerTask(${i})">🗑</button>`;
-    ul.appendChild(li);
+  // sort by date if present
+  tasks.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
   });
 
-  plannerDiv.classList.remove('hidden');
+  tasks.forEach((task, i) => {
+    const li = document.createElement('li');
+    const textHtml = `<span class="task-text">${escapeHtml(task.text)}</span>`;
+    const dateHtml = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
+    li.innerHTML = `<div style="display:flex; flex-direction:column; gap:6px;">${textHtml}${dateHtml}</div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
+        <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
+      </div>`;
+    listEl.appendChild(li);
+  });
+
+  document.getElementById('topPanels').classList.remove('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','false');
 }
 
 function addPlannerTask() {
-  const input = document.getElementById('plannerTask');
-  const text = input.value.trim();
-  if (!text) return;
+  const textEl = document.getElementById('plannerTask');
+  const dateEl = document.getElementById('plannerDate');
+  const text = textEl.value.trim();
+  const date = dateEl.value || '';
 
-  plannerTasks.push({ text });
-  savePlanner();
-  input.value = '';
-  loadPlanner();
+  if (!text) return alert('Enter a task first!');
+
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return alert('No user session');
+
+  users[currentUser].planner = users[currentUser].planner || [];
+  users[currentUser].planner.push({ text, date });
+  localStorage.setItem('users', JSON.stringify(users));
+  textEl.value = '';
+  dateEl.value = '';
+  renderPlanner();
+}
+
+function editPlannerTask(index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser] || !users[currentUser].planner) return;
+  const task = users[currentUser].planner[index];
+  if (!task) return;
+  const newText = prompt('Edit task:', task.text || '') || task.text;
+  const newDate = prompt('Edit date (YYYY-MM-DD, leave empty for none):', task.date || '') || task.date || '';
+  users[currentUser].planner[index] = { text: newText.trim(), date: newDate.trim() };
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
 }
 
 function removePlannerTask(index) {
-  plannerTasks.splice(index,1);
-  savePlanner();
-  loadPlanner();
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].planner.splice(index, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
 }
 
 function clearPlanner() {
   if (!confirm('Clear all planner tasks?')) return;
-  plannerTasks = [];
-  savePlanner();
-  loadPlanner();
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!currentUser || !users[currentUser]) return;
+  users[currentUser].planner = [];
+  localStorage.setItem('users', JSON.stringify(users));
+  renderPlanner();
 }
 
-function savePlanner() {
-  if (!currentUser) return;
+/* --------- Background Picker --------- */
+function openBackgroundPicker() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-  users[currentUser].planner = plannerTasks;
-  localStorage.setItem('users', JSON.stringify(users));
+  const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  document.getElementById('background-picker').classList.toggle('hidden');
+  document.getElementById('bg-select').value = bg;
+}
+function changeBackground(value) {
+  document.body.style.background = value === 'default'
+    ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim()
+    : value;
+
+  // save
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (currentUser) {
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].background = value;
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+}
+
+/* --------- Logout --------- */
+function logout() {
+  saveAllLists();
+  localStorage.removeItem('currentUser');
+  currentUser = null;
+  currentUserName = null;
+  allLists = [];
+  activeListIndex = 0;
+  setPickedBgValue('default');
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('listsContainer').innerHTML = "";
+  document.getElementById('tabsContainer').innerHTML = "";
+  document.getElementById('todoHeader').innerHTML = "";
+  document.getElementById('topPanels').classList.add('hidden');
+  document.getElementById('topPanels').setAttribute('aria-hidden','true');
 }
 
 /* --------- Lists --------- */
@@ -370,6 +603,7 @@ function saveAllLists() {
   users[currentUser].lists = allLists;
   localStorage.setItem('users', JSON.stringify(users));
 }
+
 function loadAllLists() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) { allLists = []; return; }
@@ -383,6 +617,7 @@ function renderLists() {
   renderTabs();
   renderActiveList();
 }
+
 function renderTabs() {
   const tabs = document.getElementById('tabsContainer');
   tabs.innerHTML = "";
@@ -393,64 +628,91 @@ function renderTabs() {
     btn.onclick = () => { activeListIndex = i; renderLists(); };
     tabs.appendChild(btn);
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'small-btn';
-    closeBtn.innerHTML = '✖';
-    closeBtn.onclick = (e) => { e.stopPropagation(); allLists.splice(i,1); if(activeListIndex>=allLists.length) activeListIndex = allLists.length-1; saveAllLists(); renderLists(); };
-    tabs.appendChild(closeBtn);
-  });
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'control-small';
+    renameBtn.textContent = '✏️';
+    renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
+    tabs.appendChild(renameBtn);
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'tab-btn';
-  addBtn.textContent = '+ New List';
-  addBtn.onclick = () => { allLists.push({name:'New List', tasks:[]}); activeListIndex=allLists.length-1; saveAllLists(); renderLists(); };
-  tabs.appendChild(addBtn);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'control-small';
+    delBtn.textContent = '🗑';
+    delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteList(i); };
+    tabs.appendChild(delBtn);
+  });
 }
+
 function renderActiveList() {
   const container = document.getElementById('listsContainer');
-  container.innerHTML = '';
-  if (!allLists[activeListIndex]) return;
-  const list = allLists[activeListIndex];
-  const ul = document.createElement('ul');
-  list.tasks.forEach((task, i) => {
+  container.innerHTML = "";
+  if (allLists.length === 0) {
+    container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
+      <h2>No To-Do Lists Yet 😎</h2>
+      <p>Click "+ New To-Do List" to start.</p>
+    </div>`;
+    return;
+  }
+  const index = activeListIndex;
+  const list = allLists[index];
+  const listDiv = document.createElement('div');
+  listDiv.innerHTML = `
+    <h2 style="margin-bottom:6px">${escapeHtml(list.name)}</h2>
+    <div style="margin-bottom:8px; display:flex; gap:6px; align-items:center;">
+      <input type="text" id="newTask_${index}" placeholder="Add a task..." style="flex:1;">
+      <input type="date" id="newTaskDate_${index}">
+      <button onclick="addTask(${index})">Add</button>
+    </div>
+    <ul id="list_${index}"></ul>
+  `;
+  container.appendChild(listDiv);
+
+  const ul = document.getElementById(`list_${index}`);
+  list.tasks.forEach((task, tIdx) => {
     const li = document.createElement('li');
-    li.innerHTML = `<span>${escapeHtml(task)}</span><button class="small-btn" onclick="removeTask(${i})">🗑</button>`;
+    const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
+    li.innerHTML = `
+      <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
+      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
+      ${dateLabel}
+      <button onclick="deleteTask(${tIdx})">🗑️</button>
+    `;
     ul.appendChild(li);
   });
-  container.appendChild(ul);
-
-  const input = document.createElement('input');
-  input.type='text'; input.placeholder='Add a new task';
-  input.addEventListener('keydown', e => { if(e.key==='Enter'){ addTask(input.value); input.value=''; } });
-  container.appendChild(input);
 }
-function addTask(taskText) {
-  if (!taskText || !allLists[activeListIndex]) return;
-  allLists[activeListIndex].tasks.push(taskText);
+
+/* Task operations */
+function createNewList() { allLists.push({ name: `List ${allLists.length+1}`, tasks: [] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
+function renameList(listIndex) { const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!=="") { allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
+function confirmDeleteList(listIndex) { if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
+function addTask(listIndex) {
+  const input = document.getElementById(`newTask_${listIndex}`);
+  const dateInput = document.getElementById(`newTaskDate_${listIndex}`);
+  const text = input.value.trim();
+  const dueDate = dateInput ? dateInput.value : '';
+
+  if (!text) return;
+
+  // Add to the to-do list (keeps compatibility with previous shape)
+  allLists[listIndex].tasks.push({ text, done: false, dueDate: dueDate || undefined });
+  input.value = "";
+  if (dateInput) dateInput.value = "";
+
+  // If a due date was provided, add to planner (dated items)
+  if (dueDate && currentUser) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].planner = users[currentUser].planner || [];
+    users[currentUser].planner.push({ text, date: dueDate });
+    localStorage.setItem('users', JSON.stringify(users));
+    renderPlanner();
+  }
+
   saveAllLists();
-  renderActiveList();
+  renderLists();
 }
-function removeTask(i) {
-  allLists[activeListIndex].tasks.splice(i,1);
-  saveAllLists();
-  renderActiveList();
-}
-
-/* Utility */
-function escapeHtml(text) {
-  const map = { '&': '&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' };
-  return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function showTodo() {
-  document.getElementById('signup').classList.add('hidden');
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('todo').classList.remove('hidden');
-  document.getElementById('todoHeader').innerHTML = `<h2>Welcome ${currentUserName || 'User'}!</h2>`;
-}
-
-function showLogin() { document.getElementById('signup').classList.add('hidden'); document.getElementById('login').classList.remove('hidden'); }
-function showSignup() { document.getElementById('login').classList.add('hidden'); document.getElementById('signup').classList.remove('hidden'); }
+function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
+function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
+function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
 
 </script>
 </body>
