@@ -598,15 +598,15 @@ function logout() {
   allLists = [];
   activeListIndex = 0;
   setPickedBgValue('default');
+  
   document.getElementById('todo').classList.add('hidden');
-  document.getElementById('login').classList.remove('hidden');
+  document.getElementById('signup').classList.remove('hidden');
   document.getElementById('listsContainer').innerHTML = "";
   document.getElementById('tabsContainer').innerHTML = "";
   document.getElementById('todoHeader').innerHTML = "";
-  document.getElementById('topPanels').classList.add('hidden');
-  document.getElementById('topPanels').setAttribute('aria-hidden','true');
+  
+  checkTopPanelsVisibility();
 }
-
 /* --------- Lists --------- */
 function saveAllLists() {
   if (!currentUser) return;
@@ -737,38 +737,22 @@ function checkTopPanelsVisibility() {
     quickLinks.classList.add('hidden');
     planner.classList.add('hidden');
   } else {
-    // User is logged in → show panels if they’re supposed to be visible
+    // User logged in → show top container
     topPanels.classList.remove('hidden');
     topPanels.setAttribute('aria-hidden', 'false');
 
-    // Only show individual panels if they have content
-    if ((quickLinks.querySelector('ul')?.children.length || 0) > 0) {
-      quickLinks.classList.remove('hidden');
-    } else {
-      quickLinks.classList.add('hidden');
-    }
+    // Show individual panels only if they have content
+    const hasQuickLinks = document.getElementById('quickLinksList')?.children.length > 0;
+    const hasPlannerTasks = document.getElementById('plannerList')?.children.length > 0;
 
-    if ((planner.querySelector('ul')?.children.length || 0) > 0) {
-      planner.classList.remove('hidden');
-    } else {
-      planner.classList.add('hidden');
-    }
+    if (hasQuickLinks) quickLinks.classList.remove('hidden'); else quickLinks.classList.add('hidden');
+    if (hasPlannerTasks) planner.classList.remove('hidden'); else planner.classList.add('hidden');
   }
 }
-
-
-function logout() {
-  localStorage.removeItem('currentUser');
-  currentUser = null;
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-  checkTopPanelsVisibility();
-}
-
-
 </script>
 </body>
 </html>
+
 
 
 
