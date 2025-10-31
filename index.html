@@ -729,35 +729,37 @@ function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done
 function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
 function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
 
-  function checkTopPanelsVisibility() {
-  const top = document.getElementById('topPanels');
-  const quickDiv = document.getElementById('quickLinks');
-  const plannerDiv = document.getElementById('planner');
-  if (quickDiv.classList.contains('hidden') && plannerDiv.classList.contains('hidden')) {
-    top.classList.add('hidden');
-    top.setAttribute('aria-hidden', 'true');
-  } else {
-    top.classList.remove('hidden');
-    top.setAttribute('aria-hidden', 'false');
-  }
-}
-  function checkTopPanelsVisibility() {
+function checkTopPanelsVisibility() {
   const topPanels = document.getElementById('topPanels');
   const quickLinks = document.getElementById('quickLinks');
   const planner = document.getElementById('planner');
 
   if (!currentUser) {
-    // hide all
+    // No user logged in → hide everything
     topPanels.classList.add('hidden');
+    topPanels.setAttribute('aria-hidden', 'true');
     quickLinks.classList.add('hidden');
     planner.classList.add('hidden');
   } else {
-    // show them again if logged in
+    // User is logged in → show panels if they’re supposed to be visible
     topPanels.classList.remove('hidden');
-    quickLinks.classList.remove('hidden');
-    planner.classList.remove('hidden');
+    topPanels.setAttribute('aria-hidden', 'false');
+
+    // Only show individual panels if they have content
+    if ((quickLinks.querySelector('ul')?.children.length || 0) > 0) {
+      quickLinks.classList.remove('hidden');
+    } else {
+      quickLinks.classList.add('hidden');
+    }
+
+    if ((planner.querySelector('ul')?.children.length || 0) > 0) {
+      planner.classList.remove('hidden');
+    } else {
+      planner.classList.add('hidden');
+    }
   }
 }
+
 
 function logout() {
   localStorage.removeItem('currentUser');
@@ -771,5 +773,6 @@ function logout() {
 </script>
 </body>
 </html>
+
 
 
