@@ -168,6 +168,37 @@
   cursor: pointer;
   font-size: 13px;
 }
+    /* Color-coded planner tasks */
+.planner-task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 8px;
+  color: white;
+}
+
+.planner-task span.task-text {
+  font-weight: 500;
+}
+
+.planner-task span.task-date {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Random background colors for tasks */
+.planner-task-color-0 { background: #ff6b6b; }
+.planner-task-color-1 { background: #feca57; }
+.planner-task-color-2 { background: #1dd1a1; }
+.planner-task-color-3 { background: #54a0ff; }
+.planner-task-color-4 { background: #5f27cd; }
+.planner-task-color-5 { background: #ff9ff3; }
+.planner-task-color-6 { background: #48dbfb; }
+.planner-task-color-7 { background: #00d2d3; }
+.planner-task-color-8 { background: #ff9f43; }
+.planner-task-color-9 { background: #ee5253; }
+
   </style>
 </head>
 <body>
@@ -220,6 +251,14 @@
           <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
           <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
           <div class="row">
+          <div style="margin-top:6px;">
+  <span>Task Color:</span>
+  <div class="gradient-option" data-color="#ff7e5f" style="background:#ff7e5f"></div>
+  <div class="gradient-option" data-color="#6dd5ed" style="background:#6dd5ed"></div>
+  <div class="gradient-option" data-color="#f9d423" style="background:#f9d423"></div>
+  <div class="gradient-option" data-color="#ff6f91" style="background:#ff6f91"></div>
+</div>
+
             <button class="small-btn" onclick="addQuickLink()">Add</button>
             <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
           </div>
@@ -372,33 +411,35 @@ function togglePanel(panelId) {
 /* --------- Top panels visibility helper --------- */
 /* This function centralizes "when to show/hide" logic for topPanels, quickLinks, planner */
 /* Top panels visibility */
-function checkTopPanelsVisibility() {
+function checkTopPanelsVisibility(){
   const top = document.getElementById('topPanels');
   const quick = document.getElementById('quickLinks');
   const plan = document.getElementById('planner');
 
-  if (!currentUser) {
-    // Hide everything if not logged in
-    [top, quick, plan].forEach(el => {
-      el?.classList.add('hidden');
-      el?.setAttribute('aria-hidden', 'true');
-    });
+  if(!currentUser){
+    top?.classList.add('hidden'); 
+    top?.setAttribute('aria-hidden','true');
+
+    quick?.classList.add('hidden'); 
+    quick?.setAttribute('aria-hidden','true');
+
+    plan?.classList.add('hidden'); 
+    plan?.setAttribute('aria-hidden','true');
     return;
   }
 
-  // Show top panels
-  top?.classList.remove('hidden');
-  top?.setAttribute('aria-hidden', 'false');
+  // If logged in, show top panels
+  top?.classList.remove('hidden'); 
+  top?.setAttribute('aria-hidden','false');
 
-  // Quick links: show if they have children
-  const quickHasContent = document.getElementById('quickLinksList').children.length > 0;
-  quick?.classList.toggle('hidden', !quickHasContent);
-  quick?.setAttribute('aria-hidden', !quickHasContent ? 'true' : 'false');
+  // Show quick links
+  quick?.classList.remove('hidden');
+  quick?.setAttribute('aria-hidden','false');
 
-  // Planner: show if there are any tasks
-  const plannerHasTasks = document.querySelectorAll('.day-column ul.tasks li').length > 0;
-  plan?.classList.toggle('hidden', !plannerHasTasks);
-  plan?.setAttribute('aria-hidden', !plannerHasTasks ? 'true' : 'false');
+  // Always show planner
+  plan?.classList.remove('hidden');
+  plan?.setAttribute('aria-hidden','false');
+}
 }
 /* --------- Account functions (password used as unique id) --------- */
 function createAccount() {
@@ -625,12 +666,21 @@ function renderPlanner() {
   const weekMap = {}; // to group tasks by day
   daysOfWeek.forEach(day => weekMap[day] = []);
 
-  tasks.forEach(task => {
-    const taskDate = task.date ? new Date(task.date) : null;
-    const dayName = taskDate ? daysOfWeek[taskDate.getDay()] : 'No date';
-    if (!weekMap[dayName]) weekMap[dayName] = [];
-    weekMap[dayName].push(task);
-  });
+ tasks.forEach((task, i) => {
+  const li = document.createElement('li');
+  li.style.background = task.color || 'rgba(255,255,255,0.14)'; // default fallback
+  li.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <span class="task-text">${escapeHtml(task.text)}</span>
+      <span class="task-date">${task.date ? escapeHtml(task.date) : 'No date'}</span>
+    </div>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
+      <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
+    </div>
+  `;
+  listEl.appendChild(li);
+});
 
   // render each day
   daysOfWeek.forEach(day => {
@@ -672,7 +722,9 @@ function addPlannerTask() {
 
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return alert('No user session');
+  
 
+  users[currentUser].planner.push({ text, date, color: pickedTaskColor });
   users[currentUser].planner = users[currentUser].planner || [];
   users[currentUser].planner.push({ text, date });
   localStorage.setItem('users', JSON.stringify(users));
@@ -941,8 +993,19 @@ function clearWeeklyPlanner() {
 
 
 window.addEventListener('DOMContentLoaded', initPage);
+let pickedTaskColor = '#ffffff'; // default white
+
+const taskColorEls = Array.from(document.querySelectorAll('#planner .gradient-option[data-color]'));
+taskColorEls.forEach(el => {
+  el.addEventListener('click', () => {
+    pickedTaskColor = el.getAttribute('data-color');
+    taskColorEls.forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  });
+});
 
 </script>
 </body>
 </html>
+
 
