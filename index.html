@@ -357,8 +357,7 @@ function login() {
   document.getElementById('signup').classList.remove('hidden');
 
   checkTopPanelsVisibility();
-}
-
+  
   localStorage.setItem('currentUser', pass);
   currentUser = pass;
   currentUserName = users[pass].username || null;
@@ -763,6 +762,7 @@ function checkTopPanelsVisibility() {
 </script>
 </body>
 </html>
+
 
 
 
