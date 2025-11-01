@@ -117,6 +117,57 @@
       .panel { width: 100%; }
       body { padding: 20px; }
     }
+    .weekly-planner {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.day-column {
+  background: rgba(255,255,255,0.1);
+  padding: 8px;
+  border-radius: 10px;
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.day-column h4 {
+  text-align: center;
+  margin: 0 0 6px 0;
+}
+.day-column ul.tasks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+.day-column ul.tasks li {
+  background: rgba(255,255,255,0.15);
+  margin-bottom: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.day-column input.new-task {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  margin-bottom: 4px;
+  flex: none;
+}
+.day-column button {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
   </style>
 </head>
 <body>
@@ -176,27 +227,60 @@
       </div>
     </div>
 
-    <!-- Planner panel -->
-    <div id="planner" class="panel" aria-hidden="true">
-      <div class="panel-header" onclick="togglePanel('planner')">
-        <div style="width:20px"></div>
-        <div class="title">Planner</div>
-        <div class="chev">▾</div>
-      </div>
-      <div id="plannerBody" class="panel-body" aria-hidden="true">
-        <ul id="plannerList"></ul>
-
-        <div class="inputs">
-          <input type="text" id="plannerTask" placeholder="Add a task...">
-          <input type="date" id="plannerDate">
-          <div class="row">
-            <button class="small-btn" onclick="addPlannerTask()">Add</button>
-            <button class="small-btn" onclick="clearPlanner()">Clear All</button>
-          </div>
-        </div>
-      </div>
+<div class="panel-header" onclick="togglePanel('planner')">
+  <div style="width:20px"></div>
+  <div class="title">Weekly Planner</div>
+  <div class="chev">▾</div>
+</div>
+<div id="plannerBody" class="panel-body" aria-hidden="true">
+  <div class="weekly-planner">
+    <div class="day-column" data-day="Monday">
+      <h4>Monday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Monday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Tuesday">
+      <h4>Tuesday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Tuesday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Wednesday">
+      <h4>Wednesday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Wednesday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Thursday">
+      <h4>Thursday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Thursday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Friday">
+      <h4>Friday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Friday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Saturday">
+      <h4>Saturday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Saturday', this)">Add</button>
+    </div>
+    <div class="day-column" data-day="Sunday">
+      <h4>Sunday</h4>
+      <ul class="tasks"></ul>
+      <input type="text" class="new-task" placeholder="Add task...">
+      <button onclick="addWeeklyTask('Sunday', this)">Add</button>
     </div>
   </div>
+  <div style="margin-top:8px">
+    <button onclick="clearWeeklyPlanner()">Clear All Tasks</button>
+  </div>
+</div>
 
   <!-- To-do lists -->
   <div id="todo" class="hidden">
@@ -531,11 +615,11 @@ function renderPlanner() {
   if (!listEl) return;
   listEl.innerHTML = '';
 
-  // hide top area if not logged
+  // hide top area if not logged in
   if (!currentUser) {
-    if (plannerDiv) plannerDiv.setAttribute('aria-hidden','true');
+    if (plannerDiv) plannerDiv.setAttribute('aria-hidden', 'true');
     if (top) top.classList.add('hidden');
-    if (top) top.setAttribute('aria-hidden','true');
+    if (top) top.setAttribute('aria-hidden', 'true');
     checkTopPanelsVisibility();
     return;
   }
@@ -545,7 +629,7 @@ function renderPlanner() {
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const tasks = (users[currentUser] && users[currentUser].planner) || [];
 
-  // sort by date if present
+  // sort tasks by date if present
   tasks.sort((a, b) => {
     if (!a.date && !b.date) return 0;
     if (!a.date) return 1;
@@ -553,21 +637,43 @@ function renderPlanner() {
     return new Date(a.date) - new Date(b.date);
   });
 
-  tasks.forEach((task, i) => {
-    const li = document.createElement('li');
-    const textHtml = `<span class="task-text">${escapeHtml(task.text)}</span>`;
-    const dateHtml = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
-    li.innerHTML = `<div style="display:flex; flex-direction:column; gap:6px;">${textHtml}${dateHtml}</div>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
-        <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
-      </div>`;
-    listEl.appendChild(li);
+  // Weekly planner layout
+  const daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const weekMap = {}; // to group tasks by day
+  daysOfWeek.forEach(day => weekMap[day] = []);
+
+  tasks.forEach(task => {
+    const taskDate = task.date ? new Date(task.date) : null;
+    const dayName = taskDate ? daysOfWeek[taskDate.getDay()] : 'No date';
+    if (!weekMap[dayName]) weekMap[dayName] = [];
+    weekMap[dayName].push(task);
+  });
+
+  // render each day
+  daysOfWeek.forEach(day => {
+    const dayTasks = weekMap[day];
+    if (dayTasks.length === 0) return;
+    const dayHeader = document.createElement('li');
+    dayHeader.innerHTML = `<strong>${day}</strong>`;
+    dayHeader.style.marginTop = '10px';
+    listEl.appendChild(dayHeader);
+
+    dayTasks.forEach((task, i) => {
+      const li = document.createElement('li');
+      const textHtml = `<span class="task-text" style="color:${task.color || '#000'}">${escapeHtml(task.text)}</span>`;
+      const dateHtml = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
+      li.innerHTML = `<div style="display:flex; flex-direction:column; gap:6px;">${textHtml}${dateHtml}</div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
+          <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
+        </div>`;
+      listEl.appendChild(li);
+    });
   });
 
   if (top) {
     top.classList.remove('hidden');
-    top.setAttribute('aria-hidden','false');
+    top.setAttribute('aria-hidden', 'false');
   }
 
   checkTopPanelsVisibility();
@@ -801,12 +907,58 @@ function initPage() {
     document.getElementById('signup').classList.remove('hidden');
   }
   checkTopPanelsVisibility();
+}function renderWeeklyPlanner() {
+  if (!currentUser) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  users[currentUser].weeklyTasks = users[currentUser].weeklyTasks || {};
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+  days.forEach(day => {
+    const column = document.querySelector(`.day-column[data-day="${day}"]`);
+    const ul = column.querySelector('ul.tasks');
+    ul.innerHTML = '';
+    const tasks = users[currentUser].weeklyTasks[day] || [];
+    tasks.forEach((task, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${task}</span>
+        <button onclick="removeWeeklyTask('${day}', ${i})">🗑️</button>`;
+      ul.appendChild(li);
+    });
+  });
 }
+
+function addWeeklyTask(day, btn) {
+  const input = btn.previousElementSibling;
+  const text = input.value.trim();
+  if (!text) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  users[currentUser].weeklyTasks = users[currentUser].weeklyTasks || {};
+  users[currentUser].weeklyTasks[day] = users[currentUser].weeklyTasks[day] || [];
+  users[currentUser].weeklyTasks[day].push(text);
+  localStorage.setItem('users', JSON.stringify(users));
+  input.value = '';
+  renderWeeklyPlanner();
+}
+
+function removeWeeklyTask(day, index) {
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  if (!users[currentUser]?.weeklyTasks?.[day]) return;
+  users[currentUser].weeklyTasks[day].splice(index, 1);
+  localStorage.setItem('users', JSON.stringify(users));
+  renderWeeklyPlanner();
+}
+
+function clearWeeklyPlanner() {
+  if (!confirm('Clear all weekly tasks?')) return;
+  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  users[currentUser].weeklyTasks = {};
+  localStorage.setItem('users', JSON.stringify(users));
+  renderWeeklyPlanner();
+}
+
 
 window.addEventListener('DOMContentLoaded', initPage);
 
 </script>
 </body>
 </html>
-
-
