@@ -219,6 +219,14 @@
   </div>
 
 <script>
+// force-hide top panels on page load
+document.getElementById('topPanels')?.classList.add('hidden');
+document.getElementById('quickLinks')?.classList.add('hidden');
+document.getElementById('planner')?.classList.add('hidden');
+
+/* --------- State --------- */
+let currentUser = localStorage.getItem('currentUser'); // etc...
+
 /* --------- State --------- */
 /* currentUser stores the user's unique id (we use password as id) */
 let currentUser = localStorage.getItem('currentUser'); // this will be password (unique id)
@@ -282,28 +290,36 @@ function togglePanel(panelId) {
 
 /* --------- Top panels visibility helper --------- */
 /* This function centralizes "when to show/hide" logic for topPanels, quickLinks, planner */
-function checkTopPanelsVisibility() {
-  const topPanels = document.getElementById('topPanels');
-  const quickLinks = document.getElementById('quickLinks');
-  const planner = document.getElementById('planner');
+/* Top panels visibility */
+function checkTopPanelsVisibility(){
+  const top = document.getElementById('topPanels');
+  const quick = document.getElementById('quickLinks');
+  const plan = document.getElementById('planner');
 
-  if (!currentUser) {
-    // No user logged in → hide everything
-    if (topPanels) topPanels.classList.add('hidden');
-    if (topPanels) topPanels.setAttribute('aria-hidden', 'true');
-    if (quickLinks) quickLinks.classList.add('hidden');
-    if (planner) planner.classList.add('hidden');
-  } else {
-    // Show container; show individual panels only if they have content
-    if (topPanels) topPanels.classList.remove('hidden');
-    if (topPanels) topPanels.setAttribute('aria-hidden', 'false');
+  if(!currentUser){
+    // Hide all top panels and sub-panels if not logged in
+    top?.classList.add('hidden'); 
+    top?.setAttribute('aria-hidden','true');
 
-    const hasQuickLinks = document.getElementById('quickLinksList')?.children.length > 0;
-    const hasPlannerTasks = document.getElementById('plannerList')?.children.length > 0;
+    quick?.classList.add('hidden'); 
+    quick?.setAttribute('aria-hidden','true');
 
-    if (hasQuickLinks) quickLinks.classList.remove('hidden'); else quickLinks.classList.add('hidden');
-    if (hasPlannerTasks) planner.classList.remove('hidden'); else planner.classList.add('hidden');
+    plan?.classList.add('hidden'); 
+    plan?.setAttribute('aria-hidden','true');
+    return;
   }
+
+  // If logged in, show top panels
+  top?.classList.remove('hidden'); 
+  top?.setAttribute('aria-hidden','false');
+
+  // Show/hide quick links based on content
+  quick?.classList.toggle('hidden', document.getElementById('quickLinksList')?.children.length === 0);
+  quick?.setAttribute('aria-hidden', quick.classList.contains('hidden') ? 'true' : 'false');
+
+  // Show/hide planner based on content
+  plan?.classList.toggle('hidden', document.getElementById('plannerList')?.children.length === 0);
+  plan?.setAttribute('aria-hidden', plan.classList.contains('hidden') ? 'true' : 'false');
 }
 
 /* --------- Load session (if any) --------- */
@@ -766,7 +782,6 @@ function addTask(listIndex) {
     localStorage.setItem('users', JSON.stringify(users));
     renderPlanner();
   }
-
   saveAllLists();
   renderLists();
 }
