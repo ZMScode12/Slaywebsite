@@ -225,9 +225,6 @@ document.getElementById('quickLinks')?.classList.add('hidden');
 document.getElementById('planner')?.classList.add('hidden');
 
 /* --------- State --------- */
-let currentUser = localStorage.getItem('currentUser'); // etc...
-
-/* --------- State --------- */
 /* currentUser stores the user's unique id (we use password as id) */
 let currentUser = localStorage.getItem('currentUser'); // this will be password (unique id)
 let currentUserName = null; // display name (username)
@@ -788,7 +785,26 @@ function addTask(listIndex) {
 function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
 function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
+function initPage() {
+  currentUser = localStorage.getItem('currentUser');
+  if (currentUser) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    currentUserName = users[currentUser]?.username || null;
+    loadAllLists();
+    showTodo();
+    renderLists();
+    renderQuickLinks();
+    renderPlanner();
+  } else {
+    // show signup by default
+    document.getElementById('signup').classList.remove('hidden');
+  }
+  checkTopPanelsVisibility();
+}
+
+window.addEventListener('DOMContentLoaded', initPage);
 
 </script>
 </body>
 </html>
+
