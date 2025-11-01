@@ -347,6 +347,17 @@ function login() {
     alert('Invalid username or password');
     return;
   }
+  localStorage.removeItem('currentUser');
+  currentUser = null;
+  currentUserName = null;
+
+  // hide panels + to-do stuff
+  document.getElementById('topPanels').classList.add('hidden');
+  document.getElementById('todo').classList.add('hidden');
+  document.getElementById('signup').classList.remove('hidden');
+
+  checkTopPanelsVisibility();
+}
 
   localStorage.setItem('currentUser', pass);
   currentUser = pass;
@@ -748,10 +759,11 @@ function checkTopPanelsVisibility() {
     if (hasQuickLinks) quickLinks.classList.remove('hidden'); else quickLinks.classList.add('hidden');
     if (hasPlannerTasks) planner.classList.remove('hidden'); else planner.classList.add('hidden');
   }
-}
+
 </script>
 </body>
 </html>
+
 
 
 
