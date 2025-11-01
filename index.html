@@ -311,7 +311,8 @@ function checkTopPanelsVisibility(){
   top?.setAttribute('aria-hidden','false');
 
   // Show/hide quick links based on content
-  quick?.classList.toggle('hidden', document.getElementById('quickLinksList')?.children.length === 0);
+quick?.classList.remove('hidden');
+quick?.setAttribute('aria-hidden','false');
   quick?.setAttribute('aria-hidden', quick.classList.contains('hidden') ? 'true' : 'false');
 
   // Show/hide planner based on content
@@ -807,4 +808,5 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
