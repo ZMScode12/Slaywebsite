@@ -235,7 +235,9 @@
         </div>
 
         <!-- Weekly grid -->
-        <div id="plannerGrid" style="margin-top:10px;"></div>
+    <div id="plannerScrollWrapper">
+  <div id="plannerGrid" style="margin-top:10px;"></div>
+</div>
 
         <!-- Palette UI -->
         <div id="palette" aria-hidden="false">
@@ -560,18 +562,37 @@ function renderPlanner(){
   grid.innerHTML = ''; // clear
   // create 7 columns, Sunday first
 // Build the week dynamically starting on Sunday with real dates
+// Build the week dynamically starting on Sunday with real dates
 const today = new Date();
+const dayOfWeek = today.getDay();
 const startOfWeek = new Date(today);
-startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday start
-const dayNames = [];
-for (let i = 0; i < 7; i++) {
-  const d = new Date(startOfWeek);
-  d.setDate(startOfWeek.getDate() + i);
-  const name = d.toLocaleDateString('en-US', { weekday: 'short' }); // Sun, Mon, etc.
-  const num = d.getDate();
-  dayNames.push(`${name} ${num}`); // Example: "Mon 12"
-}
+startOfWeek.setDate(today.getDate() - dayOfWeek);
 
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+for (let i = 0; i < 7; i++) {
+  const date = new Date(startOfWeek);
+  date.setDate(startOfWeek.getDate() + i);
+  const dayCol = document.createElement('div');
+  dayCol.className = 'day-col';
+
+  const header = document.createElement('div');
+  header.className = 'day-header';
+  header.innerHTML = `<span>${dayNames[i]}</span><span style="font-size:12px;opacity:0.8;">${date.getMonth()+1}/${date.getDate()}</span>`;
+  dayCol.appendChild(header);
+
+  const users = getUsers();
+  const plannerTasks = (users[currentUser] && users[currentUser].planner) || [];
+  plannerTasks.filter(t => t.dayIndex === i).forEach(task => {
+    const taskEl = document.createElement('div');
+    taskEl.className = 'task-pill';
+    taskEl.style.background = task.color || '#ffd166';
+    taskEl.innerHTML = `<span class="task-label">${escapeHtml(task.text)}</span>
+      <button class="control-small" onclick="removePlannerTask('${task.id}')">✖</button>`;
+    dayCol.appendChild(taskEl);
+  });
+
+  grid.appendChild(dayCol);
+}
   const users = getUsers();
   const user = users[currentUser] || { planner: [], palette: [] };
   const tasks = user.planner || [];
@@ -938,4 +959,3 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
-
