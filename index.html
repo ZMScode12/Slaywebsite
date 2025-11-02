@@ -376,19 +376,11 @@ function checkTopPanelsVisibility(){
     return;
   }
 
+  // show all panels when logged in
   top?.classList.remove('hidden'); top?.setAttribute('aria-hidden','false');
-
-  // Quick shows only if content exists
-  const quickHas = $('quickLinksList')?.children.length > 0;
-  quick?.classList.toggle('hidden', !quickHas);
-  quick?.setAttribute('aria-hidden', quick.classList.contains('hidden') ? 'true' : 'false');
-
-  // Planner shows always when logged in (we'll still hide if explicitly empty by user)
-  const plannerHas = true; // keep planner visible because weekly grid exists even empty
-  plan?.classList.toggle('hidden', !plannerHas);
-  plan?.setAttribute('aria-hidden', plan.classList.contains('hidden') ? 'true' : 'false');
+  quick?.classList.remove('hidden'); quick?.setAttribute('aria-hidden','false');
+  plan?.classList.remove('hidden'); plan?.setAttribute('aria-hidden','false');
 }
-
 /* ---------- Load session if any ---------- */
 if (currentUser) {
   const usersTemp = JSON.parse(localStorage.getItem('users') || '{}');
@@ -567,7 +559,19 @@ function renderPlanner(){
 
   grid.innerHTML = ''; // clear
   // create 7 columns, Sunday first
-  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+// Build the week dynamically starting on Sunday with real dates
+const today = new Date();
+const startOfWeek = new Date(today);
+startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday start
+const dayNames = [];
+for (let i = 0; i < 7; i++) {
+  const d = new Date(startOfWeek);
+  d.setDate(startOfWeek.getDate() + i);
+  const name = d.toLocaleDateString('en-US', { weekday: 'short' }); // Sun, Mon, etc.
+  const num = d.getDate();
+  dayNames.push(`${name} ${num}`); // Example: "Mon 12"
+}
+
   const users = getUsers();
   const user = users[currentUser] || { planner: [], palette: [] };
   const tasks = user.planner || [];
@@ -934,3 +938,4 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
