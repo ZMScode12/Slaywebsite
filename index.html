@@ -25,7 +25,7 @@
     }
 
     .hidden { display: none; }
-    input, button { padding: 10px; margin: 6px; border-radius: 8px; border: none; font-size: 15px; }
+    input, button, select { padding: 10px; margin: 6px; border-radius: 8px; border: none; font-size: 15px; }
     button { cursor: pointer; }
     .list-button { background-color: white; color: #6b5bff; }
 
@@ -99,106 +99,68 @@
     #quickLinksList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
     #quickLinksList a { color: #ffd; text-decoration: underline; max-width: 160px; word-break: break-word; }
 
-    /* Planner inner */
-    #plannerList { padding-left: 6px; max-height: 240px; overflow-y: auto; margin-bottom: 8px; }
-    #plannerList li { display:flex; justify-content: space-between; align-items: center; gap:8px; margin-bottom:6px; font-size:14px; }
-    .task-text { max-width: 160px; word-break: break-word; display:block; }
-    .task-date { font-size: 12px; opacity: 0.85; margin-top: 6px; display:block; }
+    /* Planner inner - weekly grid */
+    #plannerGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    .day-col {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      min-height: 120px;
+      padding: 8px;
+      box-sizing: border-box;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .day-header {
+      font-weight:700;
+      font-size:13px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+    }
+    .task-pill {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 8px;
+      border-radius: 8px;
+      color: #071019;
+      font-size:13px;
+      justify-content:space-between;
+    }
+    .task-label { flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:6px; }
 
-    /* inputs inside panels */
-    .panel .inputs { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
-    .panel input { width: 100%; border-radius: 8px; padding:8px; margin:0; border:none; box-sizing: border-box; }
-    .panel .row { display:flex; gap:6px; }
-    .panel .row .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
+    /* Palette area */
+    #palette {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:8px;
+    }
+    .palette-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .swatch {
+      width:34px; height:34px; border-radius:6px; border:2px solid rgba(255,255,255,0.18); cursor:pointer; display:inline-block; box-shadow:0 4px 10px rgba(0,0,0,0.18);
+    }
+    .swatch.selected { outline:3px solid rgba(255,255,255,0.12); transform:translateY(-2px); }
+
+    /* add color form */
+    #addColorForm { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    #addColorForm input[type="text"] { width:140px; padding:8px; border-radius:8px; }
 
     /* small responsive tweak so panels stack on narrow screens */
     @media (max-width: 880px) {
       #topPanels { flex-direction: column; gap: 12px; width: calc(100% - 40px); }
       .panel { width: 100%; }
       body { padding: 20px; }
+      #plannerGrid { grid-template-columns: repeat(1, 1fr); }
     }
-    .weekly-planner {
-  display: flex;
-  gap: 6px;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-.day-column {
-  background: rgba(255,255,255,0.1);
-  padding: 8px;
-  border-radius: 10px;
-  flex: 1;
-  min-width: 120px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.day-column h4 {
-  text-align: center;
-  margin: 0 0 6px 0;
-}
-.day-column ul.tasks {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex: 1;
-  overflow-y: auto;
-}
-.day-column ul.tasks li {
-  background: rgba(255,255,255,0.15);
-  margin-bottom: 4px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-}
-.day-column input.new-task {
-  padding: 6px;
-  border-radius: 6px;
-  border: none;
-  margin-bottom: 4px;
-  flex: none;
-}
-.day-column button {
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-}
-    /* Color-coded planner tasks */
-.planner-task {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 8px;
-  color: white;
-}
-
-.planner-task span.task-text {
-  font-weight: 500;
-}
-
-.planner-task span.task-date {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-/* Random background colors for tasks */
-.planner-task-color-0 { background: #ff6b6b; }
-.planner-task-color-1 { background: #feca57; }
-.planner-task-color-2 { background: #1dd1a1; }
-.planner-task-color-3 { background: #54a0ff; }
-.planner-task-color-4 { background: #5f27cd; }
-.planner-task-color-5 { background: #ff9ff3; }
-.planner-task-color-6 { background: #48dbfb; }
-.planner-task-color-7 { background: #00d2d3; }
-.planner-task-color-8 { background: #ff9f43; }
-.planner-task-color-9 { background: #ee5253; }
-
   </style>
 </head>
 <body>
@@ -251,14 +213,6 @@
           <input type="text" id="quickLinkName" placeholder="Link name (e.g. Spotify)">
           <input type="text" id="quickLinkURL" placeholder="URL (e.g. https://spotify.com)">
           <div class="row">
-          <div style="margin-top:6px;">
-  <span>Task Color:</span>
-  <div class="gradient-option" data-color="#ff7e5f" style="background:#ff7e5f"></div>
-  <div class="gradient-option" data-color="#6dd5ed" style="background:#6dd5ed"></div>
-  <div class="gradient-option" data-color="#f9d423" style="background:#f9d423"></div>
-  <div class="gradient-option" data-color="#ff6f91" style="background:#ff6f91"></div>
-</div>
-
             <button class="small-btn" onclick="addQuickLink()">Add</button>
             <button class="small-btn" onclick="clearQuickLinks()">Clear All</button>
           </div>
@@ -266,60 +220,39 @@
       </div>
     </div>
 
-<div class="panel-header" onclick="togglePanel('planner')">
-  <div style="width:20px"></div>
-  <div class="title">Weekly Planner</div>
-  <div class="chev">▾</div>
-</div>
-<div id="plannerBody" class="panel-body" aria-hidden="true">
-  <div class="weekly-planner">
-    <div class="day-column" data-day="Monday">
-      <h4>Monday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Monday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Tuesday">
-      <h4>Tuesday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Tuesday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Wednesday">
-      <h4>Wednesday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Wednesday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Thursday">
-      <h4>Thursday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Thursday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Friday">
-      <h4>Friday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Friday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Saturday">
-      <h4>Saturday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Saturday', this)">Add</button>
-    </div>
-    <div class="day-column" data-day="Sunday">
-      <h4>Sunday</h4>
-      <ul class="tasks"></ul>
-      <input type="text" class="new-task" placeholder="Add task...">
-      <button onclick="addWeeklyTask('Sunday', this)">Add</button>
+    <!-- Planner panel (weekly + palette) -->
+    <div id="planner" class="panel" aria-hidden="true">
+      <div class="panel-header" onclick="togglePanel('planner')">
+        <div style="width:20px"></div>
+        <div class="title">Planner (Weekly)</div>
+        <div class="chev">▾</div>
+      </div>
+      <div id="plannerBody" class="panel-body" aria-hidden="true">
+        <!-- Controls: Add task / Palette -->
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button onclick="openAddTaskDialog()" class="small-btn">+ Add Task (Weekly)</button>
+          <div style="margin-left:auto; font-size:13px; opacity:0.9">Week: Sunday → Saturday</div>
+        </div>
+
+        <!-- Weekly grid -->
+        <div id="plannerGrid" style="margin-top:10px;"></div>
+
+        <!-- Palette UI -->
+        <div id="palette" aria-hidden="false">
+          <div style="font-weight:600; margin-top:8px;">Palette (saved colors)</div>
+          <div class="palette-row" id="paletteRow"></div>
+
+          <form id="addColorForm" onsubmit="event.preventDefault(); addPaletteColor();">
+            <input type="text" id="paletteLabel" placeholder="Label (e.g. school)" required>
+            <input type="color" id="paletteColor" value="#ffd166" required>
+            <button class="small-btn" type="submit">Save color</button>
+            <button type="button" class="small-btn" onclick="clearPalette()">Clear Palette</button>
+          </form>
+        </div>
+
+      </div>
     </div>
   </div>
-  <div style="margin-top:8px">
-    <button onclick="clearWeeklyPlanner()">Clear All Tasks</button>
-  </div>
-</div>
 
   <!-- To-do lists -->
   <div id="todo" class="hidden">
@@ -341,26 +274,54 @@
     </div>
   </div>
 
-<script>
-// force-hide top panels on page load
-document.getElementById('topPanels')?.classList.add('hidden');
-document.getElementById('quickLinks')?.classList.add('hidden');
-document.getElementById('planner')?.classList.add('hidden');
+  <!-- Add / Edit Task Modal (simple inline dialog) -->
+  <div id="taskDialog" class="hidden" style="position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(6,8,12,0.95); padding:16px; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.6); width:320px; z-index:999;">
+    <h3 id="taskDialogTitle">Add Task</h3>
+    <input type="text" id="taskText" placeholder="Task description">
+    <label style="font-size:13px; opacity:0.9; display:block; text-align:left; margin-left:4px;">Day</label>
+    <select id="taskDay">
+      <!-- Sunday-first order -->
+      <option value="0">Sunday</option>
+      <option value="1">Monday</option>
+      <option value="2">Tuesday</option>
+      <option value="3">Wednesday</option>
+      <option value="4">Thursday</option>
+      <option value="5">Friday</option>
+      <option value="6">Saturday</option>
+    </select>
 
-/* --------- State --------- */
-/* currentUser stores the user's unique id (we use password as id) */
-let currentUser = localStorage.getItem('currentUser'); // this will be password (unique id)
-let currentUserName = null; // display name (username)
+    <label style="font-size:13px; opacity:0.9; display:block; text-align:left; margin-left:4px;">Color (pick or use palette)</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="color" id="taskColor" value="#ffd166">
+      <div id="taskColorPreview" style="width:34px; height:34px; border-radius:6px; border:2px solid rgba(255,255,255,0.12);"></div>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+      <button onclick="closeTaskDialog()">Cancel</button>
+      <button onclick="saveTaskFromDialog()" class="list-button">Save</button>
+    </div>
+  </div>
+
+<script>
+/* ---------- Utility & state ---------- */
+function $(id){return document.getElementById(id);}
+function escapeHtml(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* Keep earlier quirks: currentUser is stored as 'currentUser' in localStorage (password-as-id) */
+let currentUser = localStorage.getItem('currentUser') || null;
+let currentUserName = null;
 let allLists = [];
 let activeListIndex = 0;
 let pickedBackground = 'default';
 
-/* --------- util escape --------- */
-function escapeHtml(str) { return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* default quick hide so page load doesn't flash panels */
+$('topPanels').classList.add('hidden');
+$('quickLinks').classList.add('hidden');
+$('planner').classList.add('hidden');
 
-/* --------- Gradient selection --------- */
+/* ---------- Gradient selection (unchanged) ---------- */
 const gradientEls = Array.from(document.querySelectorAll('.gradient-option'));
-function setPickedBgValue(val) {
+function setPickedBgValue(val){
   pickedBackground = val;
   gradientEls.forEach(el => el.classList.toggle('selected', el.getAttribute('data-bg') === val));
   applyBackgroundPreview(val);
@@ -376,97 +337,89 @@ function applyBackgroundPreview(val) {
     document.body.style.animation = '';
   }
 }
-gradientEls.forEach(el => el.addEventListener('click', () => setPickedBgValue(el.getAttribute('data-bg'))));
-function useDefaultNow() { setPickedBgValue('default'); }
+gradientEls.forEach(el => el.addEventListener('click', ()=> setPickedBgValue(el.getAttribute('data-bg'))));
+function useDefaultNow(){ setPickedBgValue('default'); }
 
-/* --------- Panel toggle logic (slide down) --------- */
-function togglePanel(panelId) {
-  const panel = document.getElementById(panelId);
-  const body = document.getElementById(panelId + 'Body');
-  const header = panel.querySelector('.panel-header');
-  const chevron = header.querySelector('.chev');
+/* ---------- Panel toggle ---------- */
+function togglePanel(panelId){
+  const panel = $(panelId);
+  const body = $(panelId + 'Body');
+  if (!panel || !body) return;
   const open = body.classList.contains('open');
-
   if (open) {
-    // close
-    body.style.maxHeight = body.scrollHeight + 'px'; // set current height to enable transition
-    requestAnimationFrame(() => {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(()=> {
       body.style.maxHeight = '0px';
       body.classList.remove('open');
       panel.classList.remove('open');
-      body.setAttribute('aria-hidden', 'true');
+      body.setAttribute('aria-hidden','true');
     });
   } else {
-    // open
     body.classList.add('open');
     panel.classList.add('open');
-    body.setAttribute('aria-hidden', 'false');
-    // set to measured scrollHeight to animate
+    body.setAttribute('aria-hidden','false');
     body.style.maxHeight = body.scrollHeight + 'px';
-    // after transition remove explicit max-height to allow internal resizing if needed
-    setTimeout(() => { if (body.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; }, 330);
+    setTimeout(()=> { if (body.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; }, 330);
   }
 }
 
-/* --------- Top panels visibility helper --------- */
-/* This function centralizes "when to show/hide" logic for topPanels, quickLinks, planner */
-/* Top panels visibility */
+/* ---------- Top panels visibility helper (Quick Links & Planner only show when logged in) ---------- */
 function checkTopPanelsVisibility(){
-  const top = document.getElementById('topPanels');
-  const quick = document.getElementById('quickLinks');
-  const plan = document.getElementById('planner');
+  const top = $('topPanels');
+  const quick = $('quickLinks');
+  const plan = $('planner');
 
-  if(!currentUser){
-    top?.classList.add('hidden'); 
-    top?.setAttribute('aria-hidden','true');
-
-    quick?.classList.add('hidden'); 
-    quick?.setAttribute('aria-hidden','true');
-
-    plan?.classList.add('hidden'); 
-    plan?.setAttribute('aria-hidden','true');
+  if (!currentUser) {
+    top?.classList.add('hidden'); top?.setAttribute('aria-hidden','true');
+    quick?.classList.add('hidden'); quick?.setAttribute('aria-hidden','true');
+    plan?.classList.add('hidden'); plan?.setAttribute('aria-hidden','true');
     return;
   }
 
-  // If logged in, show top panels
-  top?.classList.remove('hidden'); 
-  top?.setAttribute('aria-hidden','false');
+  top?.classList.remove('hidden'); top?.setAttribute('aria-hidden','false');
 
-  // Show quick links
-  quick?.classList.remove('hidden');
-  quick?.setAttribute('aria-hidden','false');
+  // Quick shows only if content exists
+  const quickHas = $('quickLinksList')?.children.length > 0;
+  quick?.classList.toggle('hidden', !quickHas);
+  quick?.setAttribute('aria-hidden', quick.classList.contains('hidden') ? 'true' : 'false');
 
-  // Always show planner
-  plan?.classList.remove('hidden');
-  plan?.setAttribute('aria-hidden','false');
+  // Planner shows always when logged in (we'll still hide if explicitly empty by user)
+  const plannerHas = true; // keep planner visible because weekly grid exists even empty
+  plan?.classList.toggle('hidden', !plannerHas);
+  plan?.setAttribute('aria-hidden', plan.classList.contains('hidden') ? 'true' : 'false');
 }
+
+/* ---------- Load session if any ---------- */
+if (currentUser) {
+  const usersTemp = JSON.parse(localStorage.getItem('users') || '{}');
+  if (usersTemp[currentUser]) currentUserName = usersTemp[currentUser].username || null;
+  loadAllLists();
+  showTodo();
+  renderLists();
+  renderQuickLinks();
+  renderPlanner();
+  checkTopPanelsVisibility();
 }
-/* --------- Account functions (password used as unique id) --------- */
-function createAccount() {
-  const user = document.getElementById('username').value.trim();
-  const pass = document.getElementById('password').value.trim();
+
+/* ---------- Accounts (unchanged behavior) ---------- */
+function createAccount(){
+  const user = $('username').value.trim();
+  const pass = $('password').value.trim();
   if (!user || !pass) { alert('Please fill both username and password'); return; }
-
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-  // Use password as the internal unique id. Enforce unique passwords.
-  if (users[pass]) {
-    alert('That password is already in use. Please pick a different password.');
-    return;
-  }
-
+  if (users[pass]) { alert('That password is already in use. Please pick a different password.'); return; }
   users[pass] = {
     username: user,
     password: pass,
     lists: [{ name: 'My First List', tasks: [] }],
     background: pickedBackground,
     quickLinks: [],
-    planner: [] // per-account planner tasks stored as array of {text, date}
+    planner: [], // will hold {text, dayIndex (0-6), color, id}
+    palette: []  // per-user saved palette: [{label,color,id}]
   };
   localStorage.setItem('users', JSON.stringify(users));
   localStorage.setItem('currentUser', pass);
-  currentUser = pass;
-  currentUserName = user;
+  currentUser = pass; currentUserName = user;
   loadAllLists();
   showTodo();
   renderLists();
@@ -475,30 +428,16 @@ function createAccount() {
   checkTopPanelsVisibility();
 }
 
-function showLogin() {
-  document.getElementById('signup').classList.add('hidden');
-  document.getElementById('login').classList.remove('hidden');
-}
-function showSignup() {
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('signup').classList.remove('hidden');
-}
-function login() {
-  const userInput = document.getElementById('loginUsername').value.trim();
-  const pass = document.getElementById('loginPassword').value.trim();
+function showLogin(){ $('signup').classList.add('hidden'); $('login').classList.remove('hidden'); }
+function showSignup(){ $('login').classList.add('hidden'); $('signup').classList.remove('hidden'); }
+
+function login(){
+  const userInput = $('loginUsername').value.trim();
+  const pass = $('loginPassword').value.trim();
   const users = JSON.parse(localStorage.getItem('users') || '{}');
-
-  // We identify accounts by password (unique). Ensure a matching account exists and username matches what user typed.
-  if (!users[pass] || users[pass].username !== userInput) {
-    alert('Invalid username or password');
-    return;
-  }
-
-  // Set session and update UI
+  if (!users[pass] || users[pass].username !== userInput) { alert('Invalid username or password'); return; }
   localStorage.setItem('currentUser', pass);
-  currentUser = pass;
-  currentUserName = users[pass].username || null;
-
+  currentUser = pass; currentUserName = users[pass].username || null;
   loadAllLists();
   showTodo();
   renderLists();
@@ -507,28 +446,18 @@ function login() {
   checkTopPanelsVisibility();
 }
 
-/* --------- Show To-do --------- */
-function showTodo() {
+/* ---------- Show To-do (replace visible UI) ---------- */
+function showTodo(){
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return;
-
   const user = users[currentUser];
   applyBackgroundPreview(user.background || 'default');
+  $('signup').classList.add('hidden');
+  $('login').classList.add('hidden');
+  $('todo').classList.remove('hidden');
 
-  document.getElementById('signup').classList.add('hidden');
-  document.getElementById('login').classList.add('hidden');
-  document.getElementById('todo').classList.remove('hidden');
-
-  // show the top panels container (closed by default)
-  const top = document.getElementById('topPanels');
-  if (top) {
-    top.classList.remove('hidden');
-    top.setAttribute('aria-hidden','false');
-  }
-
-  // display username (not password)
   const displayName = currentUserName || (users[currentUser] && users[currentUser].username) || currentUser;
-  document.getElementById('todoHeader').innerHTML = `
+  $('todoHeader').innerHTML = `
     <h1>Welcome, ${escapeHtml(displayName)}!</h1>
     <div style="margin-top:8px">
       <button onclick="createNewList()" class="list-button">+ New To-Do List</button>
@@ -537,28 +466,26 @@ function showTodo() {
   `;
 }
 
-/* --------- Quick Links (per-account) --------- */
-function renderQuickLinks() {
-  const top = document.getElementById('topPanels');
-  const quickDiv = document.getElementById('quickLinks');
-  const listEl = document.getElementById('quickLinksList');
+/* ---------- Quick Links (unchanged except visibility) ---------- */
+function renderQuickLinks(){
+  const top = $('topPanels');
+  const quickDiv = $('quickLinks');
+  const listEl = $('quickLinksList');
   if (!listEl) return;
   listEl.innerHTML = '';
 
-  // hide top area if not logged
   if (!currentUser) {
-    if (quickDiv) quickDiv.setAttribute('aria-hidden','true');
-    if (top) top.classList.add('hidden');
-    if (top) top.setAttribute('aria-hidden','true');
+    quickDiv?.setAttribute('aria-hidden','true');
+    top?.classList.add('hidden');
+    top?.setAttribute('aria-hidden','true');
     checkTopPanelsVisibility();
     return;
   }
 
-  if (quickDiv) quickDiv.classList.remove('hidden');
+  quickDiv?.classList.remove('hidden');
 
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   const links = (users[currentUser] && users[currentUser].quickLinks) || [];
-
   links.forEach((link, i) => {
     const li = document.createElement('li');
     const nameDisplay = link.name ? (link.name.length > 36 ? (link.name.slice(0,33) + '...') : link.name) : (link.url.length > 36 ? (link.url.slice(0,33) + '...') : link.url);
@@ -570,37 +497,24 @@ function renderQuickLinks() {
     listEl.appendChild(li);
   });
 
-  // ensure top visible after rendering
-  if (top) {
-    top.classList.remove('hidden');
-    top.setAttribute('aria-hidden','false');
-  }
-
+  if (top) { top.classList.remove('hidden'); top.setAttribute('aria-hidden','false'); }
   checkTopPanelsVisibility();
 }
 
-function addQuickLink() {
-  const name = document.getElementById('quickLinkName').value.trim();
-  let url = document.getElementById('quickLinkURL').value.trim();
+function addQuickLink(){
+  const name = $('quickLinkName').value.trim();
+  let url = $('quickLinkURL').value.trim();
   if (!name || !url) { alert('Please enter both a name and a URL'); return; }
-
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url;
-  }
-
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return alert('No user session');
-
   users[currentUser].quickLinks = users[currentUser].quickLinks || [];
   users[currentUser].quickLinks.push({ name, url });
   localStorage.setItem('users', JSON.stringify(users));
-
-  document.getElementById('quickLinkName').value = '';
-  document.getElementById('quickLinkURL').value = '';
+  $('quickLinkName').value=''; $('quickLinkURL').value='';
   renderQuickLinks();
 }
-
-function editQuickLink(index) {
+function editQuickLink(index){
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
   const link = users[currentUser].quickLinks[index];
@@ -613,16 +527,14 @@ function editQuickLink(index) {
   localStorage.setItem('users', JSON.stringify(users));
   renderQuickLinks();
 }
-
-function removeQuickLink(index) {
+function removeQuickLink(index){
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser] || !users[currentUser].quickLinks) return;
-  users[currentUser].quickLinks.splice(index, 1);
+  users[currentUser].quickLinks.splice(index,1);
   localStorage.setItem('users', JSON.stringify(users));
   renderQuickLinks();
 }
-
-function clearQuickLinks() {
+function clearQuickLinks(){
   if (!confirm('Clear all quick links for this account?')) return;
   const users = JSON.parse(localStorage.getItem('users') || '{}');
   if (!currentUser || !users[currentUser]) return;
@@ -631,236 +543,285 @@ function clearQuickLinks() {
   renderQuickLinks();
 }
 
-/* --------- Planner (per-account) --------- */
-function renderPlanner() {
-  const top = document.getElementById('topPanels');
-  const plannerDiv = document.getElementById('planner');
-  const listEl = document.getElementById('plannerList');
-  if (!listEl) return;
-  listEl.innerHTML = '';
+/* ---------- Planner: weekly grid + palette ---------- */
 
-  // hide top area if not logged in
+/* helpers to read/write user data safely */
+function getUsers(){ return JSON.parse(localStorage.getItem('users') || '{}'); }
+function saveUsers(u){ localStorage.setItem('users', JSON.stringify(u)); }
+
+/* render weekly planner - always Sunday (0) to Saturday (6) */
+function renderPlanner(){
+  const plannerDiv = $('planner');
+  const grid = $('plannerGrid');
+  const paletteRow = $('paletteRow');
+  if (!grid || !paletteRow) return;
+
+  // ensure hidden if not logged in
   if (!currentUser) {
-    if (plannerDiv) plannerDiv.setAttribute('aria-hidden', 'true');
-    if (top) top.classList.add('hidden');
-    if (top) top.setAttribute('aria-hidden', 'true');
+    plannerDiv?.setAttribute('aria-hidden','true');
     checkTopPanelsVisibility();
     return;
+  } else {
+    plannerDiv?.setAttribute('aria-hidden','false');
   }
 
-  if (plannerDiv) plannerDiv.classList.remove('hidden');
+  grid.innerHTML = ''; // clear
+  // create 7 columns, Sunday first
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const users = getUsers();
+  const user = users[currentUser] || { planner: [], palette: [] };
+  const tasks = user.planner || [];
+  const palette = user.palette || [];
 
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  const tasks = (users[currentUser] && users[currentUser].planner) || [];
-
-  // sort tasks by date if present
-  tasks.sort((a, b) => {
-    if (!a.date && !b.date) return 0;
-    if (!a.date) return 1;
-    if (!b.date) return -1;
-    return new Date(a.date) - new Date(b.date);
+  // prepare buckets by weekday (0..6)
+  const buckets = [[],[],[],[],[],[],[]];
+  tasks.forEach(t => {
+    const idx = Number.isFinite(t.dayIndex) ? +t.dayIndex : 0;
+    buckets[Math.max(0, Math.min(6, idx))].push(t);
   });
 
-  // Weekly planner layout
-  const daysOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const weekMap = {}; // to group tasks by day
-  daysOfWeek.forEach(day => weekMap[day] = []);
-
- tasks.forEach((task, i) => {
-  const li = document.createElement('li');
-  li.style.background = task.color || 'rgba(255,255,255,0.14)'; // default fallback
-  li.innerHTML = `
-    <div style="display:flex; flex-direction:column; gap:6px;">
-      <span class="task-text">${escapeHtml(task.text)}</span>
-      <span class="task-date">${task.date ? escapeHtml(task.date) : 'No date'}</span>
-    </div>
-    <div style="display:flex; gap:6px; align-items:center;">
-      <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
-      <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
-    </div>
-  `;
-  listEl.appendChild(li);
-});
-
-  // render each day
-  daysOfWeek.forEach(day => {
-    const dayTasks = weekMap[day];
-    if (dayTasks.length === 0) return;
-    const dayHeader = document.createElement('li');
-    dayHeader.innerHTML = `<strong>${day}</strong>`;
-    dayHeader.style.marginTop = '10px';
-    listEl.appendChild(dayHeader);
-
-    dayTasks.forEach((task, i) => {
-      const li = document.createElement('li');
-      const textHtml = `<span class="task-text" style="color:${task.color || '#000'}">${escapeHtml(task.text)}</span>`;
-      const dateHtml = task.date ? `<span class="task-date">${escapeHtml(task.date)}</span>` : `<span class="task-date">No date</span>`;
-      li.innerHTML = `<div style="display:flex; flex-direction:column; gap:6px;">${textHtml}${dateHtml}</div>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <button class="small-btn" onclick="editPlannerTask(${i})" title="Edit">✏️</button>
-          <button class="small-btn" onclick="removePlannerTask(${i})" title="Remove">🗑</button>
-        </div>`;
-      listEl.appendChild(li);
+  // render each column
+  for (let day = 0; day < 7; day++){
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    const header = document.createElement('div');
+    header.className = 'day-header';
+    header.innerHTML = `<span>${dayNames[day]}</span><span style="opacity:0.8;font-size:12px">${day}</span>`;
+    col.appendChild(header);
+    // tasks
+    const dayTasks = buckets[day];
+    dayTasks.forEach((task) => {
+      const pill = document.createElement('div');
+      pill.className = 'task-pill';
+      pill.style.background = task.color || '#ffd166';
+      pill.style.color = readableTextColor(task.color || '#ffd166');
+      pill.title = task.text;
+      const label = document.createElement('div');
+      label.className = 'task-label';
+      label.textContent = task.text;
+      const controls = document.createElement('div');
+      controls.style.display='flex'; controls.style.gap='6px';
+      const editBtn = document.createElement('button'); editBtn.textContent='✏️'; editBtn.className='small-btn';
+      editBtn.onclick = ()=> openEditTaskDialog(task.id);
+      const delBtn = document.createElement('button'); delBtn.textContent='🗑'; delBtn.className='small-btn';
+      delBtn.onclick = ()=> { if(confirm('Delete this task?')) { removePlannerById(task.id); } };
+      controls.appendChild(editBtn); controls.appendChild(delBtn);
+      pill.appendChild(label); pill.appendChild(controls);
+      col.appendChild(pill);
     });
-  });
 
-  if (top) {
-    top.classList.remove('hidden');
-    top.setAttribute('aria-hidden', 'false');
+    // filler if empty
+    if (dayTasks.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.opacity='0.7';
+      empty.style.fontSize='13px';
+      empty.textContent = '— no tasks —';
+      col.appendChild(empty);
+    }
+    grid.appendChild(col);
   }
+
+  // render palette
+  paletteRow.innerHTML = '';
+  (palette || []).forEach(p => {
+    const s = document.createElement('div');
+    s.className = 'swatch';
+    s.title = p.label || '';
+    s.style.background = p.color || '#fff';
+    s.onclick = ()=> { $('taskColor').value = p.color; $('taskColorPreview').style.background = p.color; };
+    // add small label tooltip displayed via title
+    paletteRow.appendChild(s);
+  });
 
   checkTopPanelsVisibility();
 }
 
-function addPlannerTask() {
-  const textEl = document.getElementById('plannerTask');
-  const dateEl = document.getElementById('plannerDate');
-  const text = textEl.value.trim();
-  const date = dateEl.value || '';
+/* readable text color (simple): decide black/white based on luminance */
+function readableTextColor(hex){
+  try{
+    const c = hex.replace('#','');
+    const r = parseInt(c.substring(0,2),16);
+    const g = parseInt(c.substring(2,4),16);
+    const b = parseInt(c.substring(4,6),16);
+    const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+    return lum > 150 ? '#071019' : '#ffffff';
+  } catch(e){ return '#071019'; }
+}
 
-  if (!text) return alert('Enter a task first!');
+/* add palette color */
+function addPaletteColor(){
+  const label = $('paletteLabel').value.trim();
+  const color = $('paletteColor').value;
+  if (!label) return alert('Label required for saved color');
+  const users = getUsers();
+  users[currentUser] = users[currentUser] || {};
+  users[currentUser].palette = users[currentUser].palette || [];
+  users[currentUser].palette.push({ id: Date.now() + Math.random(), label, color });
+  saveUsers(users);
+  $('paletteLabel').value = '';
+  renderPlanner();
+}
 
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!currentUser || !users[currentUser]) return alert('No user session');
-  
+/* clear palette */
+function clearPalette(){
+  if (!confirm('Clear saved palette for this account?')) return;
+  const users = getUsers();
+  if (!users[currentUser]) return;
+  users[currentUser].palette = [];
+  saveUsers(users);
+  renderPlanner();
+}
 
-  users[currentUser].planner.push({ text, date, color: pickedTaskColor });
+/* add planner task (legacy button in top of planner) opens dialog */
+function openAddTaskDialog(){
+  $('taskDialogTitle').textContent = 'Add Task';
+  $('taskText').value = '';
+  $('taskDay').value = '0'; // default Sunday
+  $('taskColor').value = '#ffd166';
+  $('taskColorPreview').style.background = $('taskColor').value;
+  $('taskDialog').dataset.editId = ''; // new
+  $('taskDialog').classList.remove('hidden');
+}
+
+/* open edit dialog for existing task id */
+function openEditTaskDialog(taskId){
+  const users = getUsers();
+  const user = users[currentUser] || {};
+  const tasks = user.planner || [];
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return alert('Task not found');
+  $('taskDialogTitle').textContent = 'Edit Task';
+  $('taskText').value = task.text || '';
+  $('taskDay').value = String(task.dayIndex||0);
+  $('taskColor').value = task.color || '#ffd166';
+  $('taskColorPreview').style.background = $('taskColor').value;
+  $('taskDialog').dataset.editId = String(taskId);
+  $('taskDialog').classList.remove('hidden');
+}
+
+/* close dialog */
+function closeTaskDialog(){ $('taskDialog').classList.add('hidden'); $('taskDialog').dataset.editId=''; }
+
+/* keep preview synced */
+$('taskColor')?.addEventListener?.('input', ()=> { $('taskColorPreview').style.background = $('taskColor').value; });
+
+/* save from dialog */
+function saveTaskFromDialog(){
+  const text = $('taskText').value.trim();
+  if (!text) return alert('Please enter task text');
+  const dayIndex = Number($('taskDay').value) || 0;
+  const color = $('taskColor').value || '#ffd166';
+  const users = getUsers();
+  users[currentUser] = users[currentUser] || {};
   users[currentUser].planner = users[currentUser].planner || [];
-  users[currentUser].planner.push({ text, date });
-  localStorage.setItem('users', JSON.stringify(users));
-  textEl.value = '';
-  dateEl.value = '';
+
+  const editId = $('taskDialog').dataset.editId;
+  if (editId) {
+    // update
+    const idx = users[currentUser].planner.findIndex(t=>String(t.id)===String(editId));
+    if (idx >= 0) {
+      users[currentUser].planner[idx].text = text;
+      users[currentUser].planner[idx].dayIndex = dayIndex;
+      users[currentUser].planner[idx].color = color;
+    }
+  } else {
+    // new
+    users[currentUser].planner.push({ id: Date.now() + Math.random(), text, dayIndex, color });
+  }
+  saveUsers(users);
+  closeTaskDialog();
   renderPlanner();
 }
 
-function editPlannerTask(index) {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
+/* remove by id */
+function removePlannerById(id){
+  const users = getUsers();
+  if (!users[currentUser] || !users[currentUser].planner) return;
+  users[currentUser].planner = users[currentUser].planner.filter(t => String(t.id) !== String(id));
+  saveUsers(users);
+  renderPlanner();
+}
+
+/* ---------- Planner edit helpers (legacy functions kept for compatibility) ---------- */
+function addPlannerTask(){
+  // retained for older button (text + date) — we'll map date to weekday if provided
+  const textEl = $('plannerTask');
+  const dateEl = $('plannerDate');
+  const text = textEl?.value?.trim() || '';
+  const date = dateEl?.value || '';
+  if (!text) return alert('Enter a task first!');
+  const users = getUsers();
+  if (!currentUser || !users[currentUser]) return alert('No user session');
+  users[currentUser].planner = users[currentUser].planner || [];
+  let dayIndex = 0;
+  if (date) {
+    const d = new Date(date);
+    if (!isNaN(d)) dayIndex = d.getDay(); // 0..6 (Sunday..Saturday)
+  }
+  users[currentUser].planner.push({ id: Date.now()+Math.random(), text, dayIndex, color: '#ffd166' });
+  saveUsers(users);
+  if (textEl) textEl.value = '';
+  if (dateEl) dateEl.value = '';
+  renderPlanner();
+}
+function editPlannerTask(index){
+  // keep legacy interface but also allow editing through modal
+  alert('Use the weekly editor (✏️ on task) to edit tasks.');
+}
+function removePlannerTask(index){
+  // legacy: index-based removal not used; keep for safety
+  const users = getUsers();
   if (!currentUser || !users[currentUser] || !users[currentUser].planner) return;
-  const task = users[currentUser].planner[index];
-  if (!task) return;
-  const newText = prompt('Edit task:', task.text || '') || task.text;
-  const newDate = prompt('Edit date (YYYY-MM-DD, leave empty for none):', task.date || '') || task.date || '';
-  users[currentUser].planner[index] = { text: newText.trim(), date: newDate.trim() };
-  localStorage.setItem('users', JSON.stringify(users));
+  users[currentUser].planner.splice(index,1);
+  saveUsers(users);
   renderPlanner();
 }
-
-function removePlannerTask(index) {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!currentUser || !users[currentUser]) return;
-  users[currentUser].planner.splice(index, 1);
-  localStorage.setItem('users', JSON.stringify(users));
-  renderPlanner();
-}
-
-function clearPlanner() {
+function clearPlanner(){
   if (!confirm('Clear all planner tasks?')) return;
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const users = getUsers();
   if (!currentUser || !users[currentUser]) return;
   users[currentUser].planner = [];
-  localStorage.setItem('users', JSON.stringify(users));
+  saveUsers(users);
   renderPlanner();
 }
 
-/* --------- Background Picker --------- */
-function openBackgroundPicker() {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  const bg = (users[currentUser] && users[currentUser].background) || 'default';
-  document.getElementById('background-picker').classList.toggle('hidden');
-  document.getElementById('bg-select').value = bg;
-}
-function changeBackground(value) {
-  document.body.style.background = value === 'default'
-    ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim()
-    : value;
-
-  // save
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (currentUser) {
-    users[currentUser] = users[currentUser] || {};
-    users[currentUser].background = value;
-    localStorage.setItem('users', JSON.stringify(users));
-  }
-}
-
-/* --------- Logout --------- */
-function logout() {
-  saveAllLists();
-  localStorage.removeItem('currentUser');
-  currentUser = null;
-  currentUserName = null;
-  allLists = [];
-  activeListIndex = 0;
-  setPickedBgValue('default');
-  document.getElementById('todo').classList.add('hidden');
-  document.getElementById('login').classList.remove('hidden');
-  document.getElementById('listsContainer').innerHTML = "";
-  document.getElementById('tabsContainer').innerHTML = "";
-  document.getElementById('todoHeader').innerHTML = "";
-  // hide top panels and internal panels completely when logged out
-  const top = document.getElementById('topPanels');
-  if (top) {
-    top.classList.add('hidden');
-    top.setAttribute('aria-hidden','true');
-  }
-  const quick = document.getElementById('quickLinks');
-  if (quick) quick.classList.add('hidden');
-  const plan = document.getElementById('planner');
-  if (plan) plan.classList.add('hidden');
-
-  checkTopPanelsVisibility();
-}
-
-/* --------- Lists --------- */
-function saveAllLists() {
+/* ---------- Lists (unchanged except persistence helpers) ---------- */
+function saveAllLists(){
   if (!currentUser) return;
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
+  const users = getUsers();
   users[currentUser].lists = allLists;
-  localStorage.setItem('users', JSON.stringify(users));
+  saveUsers(users);
 }
-
-function loadAllLists() {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
+function loadAllLists(){
+  const users = getUsers();
   if (!currentUser || !users[currentUser]) { allLists = []; return; }
   allLists = users[currentUser].lists || [];
   allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
   activeListIndex = 0;
 }
-
-/* Render */
-function renderLists() {
+function renderLists(){
   renderTabs();
   renderActiveList();
 }
-
-function renderTabs() {
-  const tabs = document.getElementById('tabsContainer');
-  tabs.innerHTML = "";
-  allLists.forEach((list, i) => {
+function renderTabs(){
+  const tabs = $('tabsContainer'); tabs.innerHTML='';
+  allLists.forEach((list,i)=>{
     const btn = document.createElement('button');
-    btn.className = 'tab-btn' + (i === activeListIndex ? ' active' : '');
+    btn.className = 'tab-btn' + (i===activeListIndex ? ' active' : '');
     btn.textContent = list.name || `List ${i+1}`;
-    btn.onclick = () => { activeListIndex = i; renderLists(); };
+    btn.onclick = ()=>{ activeListIndex = i; renderLists(); };
     tabs.appendChild(btn);
-
-    const renameBtn = document.createElement('button');
-    renameBtn.className = 'control-small';
-    renameBtn.textContent = '✏️';
-    renameBtn.onclick = (e) => { e.stopPropagation(); renameList(i); };
+    const renameBtn = document.createElement('button'); renameBtn.className='control-small'; renameBtn.textContent='✏️';
+    renameBtn.onclick = (e)=>{ e.stopPropagation(); renameList(i); };
     tabs.appendChild(renameBtn);
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'control-small';
-    delBtn.textContent = '🗑';
-    delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteList(i); };
+    const delBtn = document.createElement('button'); delBtn.className='control-small'; delBtn.textContent='🗑';
+    delBtn.onclick = (e)=>{ e.stopPropagation(); confirmDeleteList(i); };
     tabs.appendChild(delBtn);
   });
 }
-
-function renderActiveList() {
-  const container = document.getElementById('listsContainer');
-  container.innerHTML = "";
-  if (allLists.length === 0) {
+function renderActiveList(){
+  const container = $('listsContainer'); container.innerHTML='';
+  if (allLists.length === 0){
     container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
       <h2>No To-Do Lists Yet 😎</h2>
       <p>Click "+ New To-Do List" to start.</p>
@@ -880,9 +841,8 @@ function renderActiveList() {
     <ul id="list_${index}"></ul>
   `;
   container.appendChild(listDiv);
-
-  const ul = document.getElementById(`list_${index}`);
-  list.tasks.forEach((task, tIdx) => {
+  const ul = $('list_'+index);
+  list.tasks.forEach((task, tIdx)=>{
     const li = document.createElement('li');
     const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
     li.innerHTML = `
@@ -894,43 +854,71 @@ function renderActiveList() {
     ul.appendChild(li);
   });
 }
-
-/* Task operations */
-function createNewList() { allLists.push({ name: `List ${allLists.length+1}`, tasks: [] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
-function renameList(listIndex) { const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!=="") { allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
-function confirmDeleteList(listIndex) { if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
-function addTask(listIndex) {
-  const input = document.getElementById(`newTask_${listIndex}`);
-  const dateInput = document.getElementById(`newTaskDate_${listIndex}`);
+function createNewList(){ allLists.push({ name:`List ${allLists.length+1}`, tasks:[] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
+function renameList(listIndex){ const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!==""){ allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
+function confirmDeleteList(listIndex){ if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
+function addTask(listIndex){
+  const input = $('newTask_'+listIndex);
+  const dateInput = $('newTaskDate_'+listIndex);
   const text = input.value.trim();
   const dueDate = dateInput ? dateInput.value : '';
-
   if (!text) return;
-
-  // Add to the to-do list (keeps compatibility with previous shape)
-  allLists[listIndex].tasks.push({ text, done: false, dueDate: dueDate || undefined });
-  input.value = "";
-  if (dateInput) dateInput.value = "";
-
-  // If a due date was provided, add to planner (dated items)
+  allLists[listIndex].tasks.push({ text, done:false, dueDate: dueDate || undefined });
+  input.value = ""; if (dateInput) dateInput.value = "";
   if (dueDate && currentUser) {
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const users = getUsers();
     users[currentUser] = users[currentUser] || {};
     users[currentUser].planner = users[currentUser].planner || [];
-    users[currentUser].planner.push({ text, date: dueDate });
-    localStorage.setItem('users', JSON.stringify(users));
+    // add to planner with calculated weekday
+    const d = new Date(dueDate);
+    const dayIndex = isNaN(d) ? 0 : d.getDay();
+    users[currentUser].planner.push({ id: Date.now()+Math.random(), text, dayIndex, color: '#ffd166' });
+    saveUsers(users);
     renderPlanner();
   }
   saveAllLists();
   renderLists();
 }
-function toggleTask(taskIndex) { allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
-function editTask(taskIndex, newText) { allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
-function deleteTask(taskIndex) { allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
-function initPage() {
+function toggleTask(taskIndex){ allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
+function editTask(taskIndex, newText){ allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
+function deleteTask(taskIndex){ allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
+
+/* ---------- Background picker ---------- */
+function openBackgroundPicker(){
+  const users = getUsers();
+  const bg = (users[currentUser] && users[currentUser].background) || 'default';
+  $('background-picker').classList.toggle('hidden');
+  $('bg-select').value = bg;
+}
+function changeBackground(value){
+  document.body.style.background = value === 'default' ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim() : value;
+  const users = getUsers();
+  if (currentUser) {
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].background = value;
+    saveUsers(users);
+  }
+}
+
+/* ---------- Logout ---------- */
+function logout(){
+  saveAllLists();
+  localStorage.removeItem('currentUser');
+  currentUser = null; currentUserName = null; allLists = []; activeListIndex = 0;
+  setPickedBgValue('default');
+  $('todo').classList.add('hidden'); $('login').classList.remove('hidden');
+  $('listsContainer').innerHTML=''; $('tabsContainer').innerHTML=''; $('todoHeader').innerHTML='';
+  // hide top panels
+  $('topPanels')?.classList.add('hidden'); $('topPanels')?.setAttribute('aria-hidden','true');
+  $('quickLinks')?.classList.add('hidden'); $('planner')?.classList.add('hidden');
+  checkTopPanelsVisibility();
+}
+
+/* ---------- Init / utility ---------- */
+function initPage(){
   currentUser = localStorage.getItem('currentUser');
   if (currentUser) {
-    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const users = getUsers();
     currentUserName = users[currentUser]?.username || null;
     loadAllLists();
     showTodo();
@@ -938,74 +926,11 @@ function initPage() {
     renderQuickLinks();
     renderPlanner();
   } else {
-    // show signup by default
-    document.getElementById('signup').classList.remove('hidden');
+    $('signup').classList.remove('hidden');
   }
   checkTopPanelsVisibility();
-}function renderWeeklyPlanner() {
-  if (!currentUser) return;
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  users[currentUser].weeklyTasks = users[currentUser].weeklyTasks || {};
-  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-
-  days.forEach(day => {
-    const column = document.querySelector(`.day-column[data-day="${day}"]`);
-    const ul = column.querySelector('ul.tasks');
-    ul.innerHTML = '';
-    const tasks = users[currentUser].weeklyTasks[day] || [];
-    tasks.forEach((task, i) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${task}</span>
-        <button onclick="removeWeeklyTask('${day}', ${i})">🗑️</button>`;
-      ul.appendChild(li);
-    });
-  });
 }
-
-function addWeeklyTask(day, btn) {
-  const input = btn.previousElementSibling;
-  const text = input.value.trim();
-  if (!text) return;
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  users[currentUser].weeklyTasks = users[currentUser].weeklyTasks || {};
-  users[currentUser].weeklyTasks[day] = users[currentUser].weeklyTasks[day] || [];
-  users[currentUser].weeklyTasks[day].push(text);
-  localStorage.setItem('users', JSON.stringify(users));
-  input.value = '';
-  renderWeeklyPlanner();
-}
-
-function removeWeeklyTask(day, index) {
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  if (!users[currentUser]?.weeklyTasks?.[day]) return;
-  users[currentUser].weeklyTasks[day].splice(index, 1);
-  localStorage.setItem('users', JSON.stringify(users));
-  renderWeeklyPlanner();
-}
-
-function clearWeeklyPlanner() {
-  if (!confirm('Clear all weekly tasks?')) return;
-  const users = JSON.parse(localStorage.getItem('users') || '{}');
-  users[currentUser].weeklyTasks = {};
-  localStorage.setItem('users', JSON.stringify(users));
-  renderWeeklyPlanner();
-}
-
-
 window.addEventListener('DOMContentLoaded', initPage);
-let pickedTaskColor = '#ffffff'; // default white
-
-const taskColorEls = Array.from(document.querySelectorAll('#planner .gradient-option[data-color]'));
-taskColorEls.forEach(el => {
-  el.addEventListener('click', () => {
-    pickedTaskColor = el.getAttribute('data-color');
-    taskColorEls.forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-  });
-});
-
 </script>
 </body>
 </html>
-
-
