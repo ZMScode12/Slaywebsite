@@ -160,12 +160,17 @@
       .panel { width: 100%; }
       body { padding: 20px; }
       #plannerGrid { grid-template-columns: repeat(1, 1fr); }
-    }
-    
-    #planner {
-  display: flex;       /* makes the days line up in a row */
-  overflow-x: auto;    /* allows horizontal scrolling */
-  gap: 10px;           /* space between the days */
+#plannerGrid {
+  display: flex;
+  overflow-x: auto; /* horizontal scroll */
+  gap: 10px;        /* optional, spacing between days */
+  padding-bottom: 5px; /* optional, so scrollbar doesn't overlap */
+  scroll-behavior: smooth; /* nice smooth scroll */
+}
+
+.day-col {
+  min-width: 120px; /* or whatever width you want per day */
+  flex-shrink: 0;   /* prevents shrinking so scroll works */
 }
   </style>
 </head>
@@ -955,4 +960,5 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
