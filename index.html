@@ -916,9 +916,9 @@ function addTask(listIndex){
     dayIndex = isNaN(d) ? null : d.getDay(); // 0 = Sunday ... 6 = Saturday
   }
 
-  // Add task to the list
+  // Add task to the to-do list
   allLists[listIndex].tasks.push({ text, done:false, dueDate: dueDate || undefined, dayIndex });
-  
+
   // Clear inputs
   input.value = "";
   if(dateInput) dateInput.value = "";
@@ -928,19 +928,23 @@ function addTask(listIndex){
     const users = getUsers();
     users[currentUser] = users[currentUser] || {};
     users[currentUser].planner = users[currentUser].planner || [];
-    users[currentUser].planner.push({ 
-      id: Date.now()+Math.random(), 
-      text, 
-      dayIndex, 
-      color: '#ffd166' 
+
+    users[currentUser].planner.push({
+      id: Date.now() + Math.random(), // unique ID
+      text,
+      dayIndex,
+      dueDate, // store the exact date too
+      color: '#ffd166'
     });
+
     saveUsers(users);
-    renderPlanner();
+    renderPlanner(); // update planner immediately
   }
 
   saveAllLists();
-  renderLists();
+  renderLists(); // update your to-do list
 }
+
 function toggleTask(taskIndex){ allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText){ allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
 function deleteTask(listIndex, taskIndex){
@@ -1001,5 +1005,6 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
 
