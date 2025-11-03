@@ -546,6 +546,19 @@ function clearQuickLinks(){
 /* helpers to read/write user data safely */
 function getUsers(){ return JSON.parse(localStorage.getItem('users') || '{}'); }
 function saveUsers(u){ localStorage.setItem('users', JSON.stringify(u)); }
+function formatDate(d) {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const day = days[d.getDay()];
+  const month = months[d.getMonth()];
+  const date = d.getDate();
+
+  const suffix = (date % 10 === 1 && date !== 11) ? "st" :
+                 (date % 10 === 2 && date !== 12) ? "nd" :
+                 (date % 10 === 3 && date !== 13) ? "rd" : "th";
+
+  return `${day}, ${month} ${date}${suffix}`;
+}
 
 /* render weekly planner - always Sunday (0) to Saturday (6) */
 function renderPlanner(){
@@ -554,61 +567,63 @@ function renderPlanner(){
   const paletteRow = $('paletteRow');
   if (!grid || !paletteRow) return;
 
-  // ensure hidden if not logged in
+  // Hide planner if not logged in
   if (!currentUser) {
-    plannerDiv?.setAttribute('aria-hidden','true');
+    plannerDiv.setAttribute('aria-hidden','true');
     checkTopPanelsVisibility();
     return;
   } else {
-    plannerDiv?.setAttribute('aria-hidden','false');
+    plannerDiv.setAttribute('aria-hidden','false');
   }
 
-  grid.innerHTML = ''; // clear
-  // create 7 columns, Sunday first
-// Build the week dynamically starting on Sunday with real dates
-const today = new Date();
-const startOfWeek = new Date(today);
-startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday start
-const dayNames = [];
-for (let i = 0; i < 7; i++) {
-  const d = new Date(startOfWeek);
-  d.setDate(startOfWeek.getDate() + i);
-  const name = d.toLocaleDateString('en-US', { weekday: 'short' }); // Sun, Mon, etc.
-  const num = d.getDate();
-  dayNames.push(`${name} ${num}`); // Example: "Mon 12"
-}
+  grid.innerHTML = ''; // clear grid
 
+  // Build the week starting from Sunday
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    weekDates.push(d);
+  }
+
+  // Get user data
   const users = getUsers();
   const user = users[currentUser] || { planner: [], palette: [] };
   const tasks = user.planner || [];
   const palette = user.palette || [];
 
-  // prepare buckets by weekday (0..6)
-  const buckets = [[],[],[],[],[],[],[]];
-  tasks.forEach(t => {
-    const idx = Number.isFinite(t.dayIndex) ? +t.dayIndex : 0;
-    buckets[Math.max(0, Math.min(6, idx))].push(t);
-  });
-
-  // render each column
+  // Render each day column
   for (let day = 0; day < 7; day++){
     const col = document.createElement('div');
     col.className = 'day-col';
+
+    // Format header: "Sunday, November 2nd"
+    const d = weekDates[day];
+    const dayLabel = formatDate(d);
     const header = document.createElement('div');
     header.className = 'day-header';
-    header.innerHTML = `<span>${dayNames[day]}</span><span style="opacity:0.8;font-size:12px">${day}</span>`;
+    header.textContent = dayLabel;
     col.appendChild(header);
-    // tasks
-    const dayTasks = buckets[day];
+
+    // Filter tasks for this exact date
+    const dateStr = d.toISOString().slice(0,10); // "YYYY-MM-DD"
+    const dayTasks = tasks.filter(t => t.dueDate === dateStr);
+
+    // Render tasks
     dayTasks.forEach((task) => {
       const pill = document.createElement('div');
       pill.className = 'task-pill';
       pill.style.background = task.color || '#ffd166';
       pill.style.color = readableTextColor(task.color || '#ffd166');
       pill.title = task.text;
+
       const label = document.createElement('div');
       label.className = 'task-label';
       label.textContent = task.text;
+
       const controls = document.createElement('div');
       controls.style.display='flex'; controls.style.gap='6px';
       const editBtn = document.createElement('button'); editBtn.textContent='✏️'; editBtn.className='small-btn';
@@ -616,35 +631,54 @@ for (let i = 0; i < 7; i++) {
       const delBtn = document.createElement('button'); delBtn.textContent='🗑'; delBtn.className='small-btn';
       delBtn.onclick = ()=> { if(confirm('Delete this task?')) { removePlannerById(task.id); } };
       controls.appendChild(editBtn); controls.appendChild(delBtn);
-      pill.appendChild(label); pill.appendChild(controls);
+
+      pill.appendChild(label);
+      pill.appendChild(controls);
       col.appendChild(pill);
     });
 
-    // filler if empty
-    if (dayTasks.length === 0) {
+    // Filler if no tasks
+    if(dayTasks.length === 0){
       const empty = document.createElement('div');
       empty.style.opacity='0.7';
       empty.style.fontSize='13px';
       empty.textContent = '— no tasks —';
       col.appendChild(empty);
     }
+
     grid.appendChild(col);
   }
 
-  // render palette
+  // Render palette
   paletteRow.innerHTML = '';
   (palette || []).forEach(p => {
     const s = document.createElement('div');
     s.className = 'swatch';
     s.title = p.label || '';
     s.style.background = p.color || '#fff';
-    s.onclick = ()=> { $('taskColor').value = p.color; $('taskColorPreview').style.background = p.color; };
-    // add small label tooltip displayed via title
+    s.onclick = ()=> { 
+      $('taskColor').value = p.color; 
+      $('taskColorPreview').style.background = p.color; 
+    };
     paletteRow.appendChild(s);
   });
 
   checkTopPanelsVisibility();
 }
+
+// Helper function to format date like "Sunday, November 2nd"
+function formatDate(d) {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const day = days[d.getDay()];
+  const month = months[d.getMonth()];
+  const date = d.getDate();
+  const suffix = (date % 10 === 1 && date !== 11) ? "st" :
+                 (date % 10 === 2 && date !== 12) ? "nd" :
+                 (date % 10 === 3 && date !== 13) ? "rd" : "th";
+  return `${day}, ${month} ${date}${suffix}`;
+}
+
 
 /* readable text color (simple): decide black/white based on luminance */
 function readableTextColor(hex){
@@ -967,4 +1001,5 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
