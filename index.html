@@ -161,6 +161,13 @@
       body { padding: 20px; }
       #plannerGrid { grid-template-columns: repeat(1, 1fr); }
     }
+    /* Only planner scrolls, not the whole page */
+#plannerBody {
+  max-width: 500px;    /* change width if you want it bigger/smaller */
+  overflow-x: auto;    /* makes a horizontal scroll appear inside planner */
+  overflow-y: hidden;  /* hides vertical scroll so it’s only sideways */
+  white-space: nowrap; /* keeps tasks in one line so it scrolls sideways */
+}
   </style>
 </head>
 <body>
@@ -230,7 +237,6 @@
       <div id="plannerBody" class="panel-body" aria-hidden="true">
         <!-- Controls: Add task / Palette -->
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <button onclick="openAddTaskDialog()" class="small-btn">+ Add Task (Weekly)</button>
           <div style="margin-left:auto; font-size:13px; opacity:0.9">Week: Sunday → Saturday</div>
         </div>
 
@@ -866,26 +872,49 @@ function addTask(listIndex){
   const dateInput = $('newTaskDate_'+listIndex);
   const text = input.value.trim();
   const dueDate = dateInput ? dateInput.value : '';
-  if (!text) return;
-  allLists[listIndex].tasks.push({ text, done:false, dueDate: dueDate || undefined });
-  input.value = ""; if (dateInput) dateInput.value = "";
-  if (dueDate && currentUser) {
+
+  if (!text) return alert("Please enter a task!");
+
+  // Figure out the day index if there's a date
+  let dayIndex = null;
+  if(dueDate){
+    const d = new Date(dueDate);
+    dayIndex = isNaN(d) ? null : d.getDay(); // 0 = Sunday ... 6 = Saturday
+  }
+
+  // Add task to the list
+  allLists[listIndex].tasks.push({ text, done:false, dueDate: dueDate || undefined, dayIndex });
+  
+  // Clear inputs
+  input.value = "";
+  if(dateInput) dateInput.value = "";
+
+  // Add to planner ONLY if there's a date and a logged-in user
+  if(dayIndex !== null && currentUser){
     const users = getUsers();
     users[currentUser] = users[currentUser] || {};
     users[currentUser].planner = users[currentUser].planner || [];
-    // add to planner with calculated weekday
-    const d = new Date(dueDate);
-    const dayIndex = isNaN(d) ? 0 : d.getDay();
-    users[currentUser].planner.push({ id: Date.now()+Math.random(), text, dayIndex, color: '#ffd166' });
+    users[currentUser].planner.push({ 
+      id: Date.now()+Math.random(), 
+      text, 
+      dayIndex, 
+      color: '#ffd166' 
+    });
     saveUsers(users);
     renderPlanner();
   }
+
   saveAllLists();
   renderLists();
 }
 function toggleTask(taskIndex){ allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText){ allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
-function deleteTask(taskIndex){ allLists[activeListIndex].tasks.splice(taskIndex,1); saveAllLists(); renderLists(); }
+function deleteTask(listIndex, taskIndex){
+  allLists[listIndex].tasks.splice(taskIndex, 1); // remove the task
+  saveAllLists();      // save the updated list
+  renderLists();       // update the to-do list display
+  renderPlanner();     // update the planner display
+}
 
 /* ---------- Background picker ---------- */
 function openBackgroundPicker(){
@@ -938,3 +967,4 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
