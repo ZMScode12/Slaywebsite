@@ -842,10 +842,19 @@ function loadAllLists(){
   allLists = users[currentUser].lists || [];
   allLists = allLists.map(l => (typeof l === 'string' ? { name: l, tasks: [] } : (l.name ? l : { name: 'Untitled', tasks: l.tasks || [] })));
   activeListIndex = 0;
-}
-function renderLists(){
+
+
+function renderLists() {
   renderTabs();
   renderActiveList();
+
+  // make trash buttons work!
+  document.querySelectorAll(".delete-task").forEach(btn => {
+    btn.onclick = (e) => {
+      const taskId = e.target.dataset.id;
+      deleteTask(taskId);
+    };
+  });
 }
 function renderTabs(){
   const tabs = $('tabsContainer'); tabs.innerHTML='';
@@ -947,11 +956,30 @@ function addTask(listIndex){
 
 function toggleTask(taskIndex){ allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText){ allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
-function deleteTask(listIndex, taskIndex){
-  allLists[listIndex].tasks.splice(taskIndex, 1); // remove the task
-  saveAllLists();      // save the updated list
-  renderLists();       // update the to-do list display
-  renderPlanner();     // update the planner display
+function deleteTask(listIndex, taskIndex) {
+  if (!allLists[listIndex] || !allLists[listIndex].tasks[taskIndex]) return;
+
+  // get the task before deleting it (to remove it from planner too)
+  const removedTask = allLists[listIndex].tasks[taskIndex];
+
+  // delete it from the list
+  allLists[listIndex].tasks.splice(taskIndex, 1);
+
+  // if the task had a due date, remove it from planner too
+  if (currentUser && removedTask.dueDate) {
+    const users = getUsers();
+    if (users[currentUser]?.planner) {
+      users[currentUser].planner = users[currentUser].planner.filter(
+        (p) => p.text !== removedTask.text || p.dayIndex !== removedTask.dayIndex
+      );
+      saveUsers(users);
+    }
+  }
+
+  // save and refresh everything
+  saveAllLists();
+  renderLists();
+  renderPlanner();
 }
 
 /* ---------- Background picker ---------- */
@@ -1002,6 +1030,7 @@ function initPage(){
   checkTopPanelsVisibility();
 }
 window.addEventListener('DOMContentLoaded', initPage);
+  
   function deleteTask(listIndex, taskIndex){
   const task = allLists[listIndex].tasks[taskIndex]; // grab the task before deleting it
   allLists[listIndex].tasks.splice(taskIndex, 1);    // delete from to-do list
@@ -1023,7 +1052,3 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
-
-
-
-
