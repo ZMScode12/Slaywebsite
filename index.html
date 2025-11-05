@@ -1002,9 +1002,28 @@ function initPage(){
   checkTopPanelsVisibility();
 }
 window.addEventListener('DOMContentLoaded', initPage);
+  function deleteTask(listIndex, taskIndex){
+  const task = allLists[listIndex].tasks[taskIndex]; // grab the task before deleting it
+  allLists[listIndex].tasks.splice(taskIndex, 1);    // delete from to-do list
+  saveAllLists();                                    // save the new list
+  renderLists();                                     // refresh your to-do lists
+
+  // if there's a date and a user logged in, remove it from planner too
+  if (currentUser && task && task.dueDate){
+    const users = getUsers();
+    const user = users[currentUser];
+    if (user && user.planner){
+      user.planner = user.planner.filter(p => p.dueDate !== task.dueDate || p.text !== task.text);
+      saveUsers(users);
+    }
+  }
+
+  renderPlanner(); // always refresh planner after
+}
 </script>
 </body>
 </html>
+
 
 
 
