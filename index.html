@@ -947,31 +947,45 @@ function addTask(listIndex){
 
 function toggleTask(taskIndex){ allLists[activeListIndex].tasks[taskIndex].done = !allLists[activeListIndex].tasks[taskIndex].done; saveAllLists(); renderLists(); }
 function editTask(taskIndex, newText){ allLists[activeListIndex].tasks[taskIndex].text=newText; saveAllLists(); }
- function deleteTask(listIndex, taskIndex){
-  const task = allLists[listIndex].tasks[taskIndex]; // grab the task before deleting it
-  allLists[listIndex].tasks.splice(taskIndex, 1);    // delete from to-do list
-  saveAllLists();                                    // save the new list
-  renderLists();                                     // refresh your to-do lists
+function deleteTask(listIndex, taskIndex) {
+  // make sure the list and task exist before doing anything
+  if (
+    allLists[listIndex] &&
+    allLists[listIndex].tasks &&
+    allLists[listIndex].tasks[taskIndex] !== undefined
+  ) {
+    const task = allLists[listIndex].tasks[taskIndex]; // grab it before removing
 
-  // if there's a date and a user logged in, remove it from planner too
-  if (currentUser && task && task.dueDate){
-    const users = getUsers();
-    const user = users[currentUser];
-    if (user && user.planner){
-      user.planner = user.planner.filter(p => p.dueDate !== task.dueDate || p.text !== task.text);
-      saveUsers(users);
+    // delete from to-do list
+    allLists[listIndex].tasks.splice(taskIndex, 1);
+
+    // save updated list
+    saveAllLists();
+
+    // if there's a date and a user logged in, remove from planner too
+    if (currentUser && task && task.dueDate) {
+      const users = getUsers();
+      const user = users[currentUser];
+      if (user && user.planner) {
+        user.planner = user.planner.filter(
+          (p) => p.dueDate !== task.dueDate || p.text !== task.text
+        );
+        saveUsers(users);
+      }
     }
+
+    // render safely after everything updates
+    requestAnimationFrame(() => {
+      renderLists();
+      renderPlanner();
+    });
+  } else {
+    console.warn("Tried to delete a task that doesn’t exist!", {
+      listIndex,
+      taskIndex,
+      allLists,
+    });
   }
-
-  renderPlanner(); // always refresh planner after
-}
-
-/* ---------- Background picker ---------- */
-function openBackgroundPicker(){
-  const users = getUsers();
-  const bg = (users[currentUser] && users[currentUser].background) || 'default';
-  $('background-picker').classList.toggle('hidden');
-  $('bg-select').value = bg;
 }
 function changeBackground(value){
   document.body.style.background = value === 'default' ? getComputedStyle(document.documentElement).getPropertyValue('--default-moving').trim() : value;
@@ -1017,4 +1031,5 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
