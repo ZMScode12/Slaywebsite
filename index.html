@@ -893,7 +893,7 @@ its in this function: function renderActiveList(){
       <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
       <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
       ${dateLabel}
-   <button onclick="deleteTask(${lIdx}, ${tIdx})">🗑️</button>
+     <button onclick="deleteTask(${tIdx})">🗑️</button>
     `;
     ul.appendChild(li);
   });
@@ -1032,6 +1032,7 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
 
 
