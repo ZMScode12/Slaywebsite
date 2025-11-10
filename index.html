@@ -846,6 +846,8 @@ function loadAllLists(){
 function renderLists(){
   renderTabs();
   renderActiveList();
+} // ✅ this brace closes renderLists properly
+
 function renderActiveList() {
   const container = $('listsContainer');
   container.innerHTML = '';
@@ -892,7 +894,7 @@ function renderActiveList() {
     ul.appendChild(li);
   });
 }
-
+  
 function createNewList(){ allLists.push({ name:`List ${allLists.length+1}`, tasks:[] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
 function renameList(listIndex){ const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!==""){ allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
 function confirmDeleteList(listIndex){ if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
@@ -1026,6 +1028,7 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
+
 
 
 
