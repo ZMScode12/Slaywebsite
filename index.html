@@ -863,7 +863,7 @@ function renderTabs(){
     tabs.appendChild(delBtn);
   });
 }
-function renderActiveList(){
+its in this function: function renderActiveList(){
   const container = $('listsContainer'); container.innerHTML='';
   if (allLists.length === 0){
     container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
@@ -886,19 +886,18 @@ function renderActiveList(){
   `;
   container.appendChild(listDiv);
   const ul = $('list_'+index);
- list.tasks.forEach((task, tIdx) => {
-  const li = document.createElement('li');
-  const dateLabel = task.dueDate
-    ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>`
-    : '';
-  li.innerHTML = `
-    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
-    <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
-    ${dateLabel}
-    <button onclick="deleteTask(${index}, ${tIdx})">🗑️</button>
-  `;
-  ul.appendChild(li);
-});
+  list.tasks.forEach((task, tIdx)=>{
+    const li = document.createElement('li');
+    const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
+    li.innerHTML = `
+      <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
+      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
+      ${dateLabel}
+   <button onclick="deleteTask(${lIdx}, ${tIdx})">🗑️</button>
+    `;
+    ul.appendChild(li);
+  });
+}
   
 function createNewList(){ allLists.push({ name:`List ${allLists.length+1}`, tasks:[] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
 function renameList(listIndex){ const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!==""){ allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
