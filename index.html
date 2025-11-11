@@ -846,24 +846,34 @@ function loadAllLists(){
 function renderLists(){
   renderTabs();
   renderActiveList();
-} // ✅ this brace closes renderLists properly
-
-function renderActiveList() {
-  const container = $('listsContainer');
-  container.innerHTML = '';
-
-  if (allLists.length === 0) {
-    container.innerHTML = `
-      <div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
-        <h2>No To-Do Lists Yet 😎</h2>
-        <p>Click "+ New To-Do List" to start.</p>
-      </div>`;
+}
+function renderTabs(){
+  const tabs = $('tabsContainer'); tabs.innerHTML='';
+  allLists.forEach((list,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i===activeListIndex ? ' active' : '');
+    btn.textContent = list.name || `List ${i+1}`;
+    btn.onclick = ()=>{ activeListIndex = i; renderLists(); };
+    tabs.appendChild(btn);
+    const renameBtn = document.createElement('button'); renameBtn.className='control-small'; renameBtn.textContent='✏️';
+    renameBtn.onclick = (e)=>{ e.stopPropagation(); renameList(i); };
+    tabs.appendChild(renameBtn);
+    const delBtn = document.createElement('button'); delBtn.className='control-small'; delBtn.textContent='🗑';
+    delBtn.onclick = (e)=>{ e.stopPropagation(); confirmDeleteList(i); };
+    tabs.appendChild(delBtn);
+  });
+}
+function renderActiveList(){
+  const container = $('listsContainer'); container.innerHTML='';
+  if (allLists.length === 0){
+    container.innerHTML = `<div style="padding:20px; border-radius:12px; background: rgba(0,0,0,0.15)">
+      <h2>No To-Do Lists Yet 😎</h2>
+      <p>Click "+ New To-Do List" to start.</p>
+    </div>`;
     return;
   }
-
   const index = activeListIndex;
   const list = allLists[index];
-
   const listDiv = document.createElement('div');
   listDiv.innerHTML = `
     <h2 style="margin-bottom:6px">${escapeHtml(list.name)}</h2>
@@ -875,26 +885,19 @@ function renderActiveList() {
     <ul id="list_${index}"></ul>
   `;
   container.appendChild(listDiv);
-
-  const ul = $('list_' + index);
-  list.tasks.forEach((task, tIdx) => {
+  const ul = $('list_'+index);
+  list.tasks.forEach((task, tIdx)=>{
     const li = document.createElement('li');
-    const dateLabel = task.dueDate
-      ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>`
-      : '';
-
+    const dateLabel = task.dueDate ? `<span style="font-size:12px; opacity:0.9; margin-right:8px;">${escapeHtml(task.dueDate)}</span>` : '';
     li.innerHTML = `
-      <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index}, ${tIdx})">
-      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${index}, ${tIdx}, this.value)" 
-        style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
+      <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${tIdx})">
+      <input type="text" value="${escapeHtml(task.text)}" onchange="editTask(${tIdx}, this.value)" style="text-decoration: ${task.done ? 'line-through' : 'none'}; margin-left:8px; flex:1;">
       ${dateLabel}
-      <button onclick="deleteTask(${index}, ${tIdx})">🗑️</button>
+      <button onclick="deleteTask(${tIdx})">🗑️</button>
     `;
-
     ul.appendChild(li);
   });
 }
-  
 function createNewList(){ allLists.push({ name:`List ${allLists.length+1}`, tasks:[] }); saveAllLists(); activeListIndex = allLists.length-1; renderLists(); }
 function renameList(listIndex){ const newName = prompt("New name:", allLists[listIndex].name || `List ${listIndex+1}`); if (newName && newName.trim()!==""){ allLists[listIndex].name=newName.trim(); saveAllLists(); renderLists(); } }
 function confirmDeleteList(listIndex){ if(!confirm("Delete this list?")) return; allLists.splice(listIndex,1); if(allLists.length===0) activeListIndex=0; else if(activeListIndex>=allLists.length) activeListIndex=allLists.length-1; saveAllLists(); renderLists(); }
@@ -1028,9 +1031,4 @@ window.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
-
-
-
-
-
 
